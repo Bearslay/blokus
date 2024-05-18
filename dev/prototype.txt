@@ -1,0 +1,113 @@
+// Presets:
+//     Board = Size of Board
+//     Base# = Amount of default blokus pieces to give each player
+//     iHex = Give each player hexominoes
+//     iHept = Give each player heptominoes
+
+        | Board | sBase | sHex | sHept | % Coverage |
+Regular | 20x20 |   1   |  0   |   0   | 3 67, 4 89 | // 2 Player Mode: Add an extra set of base pieces; board stays at 20x20 (coverage = 89)
+Hex     | 42x42 |   2   |  1   |   0   | 3 66, 4 88 | // 2 Player Mode: Add an extra set of base pieces and hexominoes; decrease board to 40x40 (coverage = 86)
+Hept    | 66x66 |   2   |  0   |   1   | 3 64, 4 86 | // 2 Player Mode: Add an extra set of base pieces and heptominoes; decrease board to 64x64 (coverage = 87)
+Maximum | 74x74 |   3   |  1   |   1   | 3 67, 4 90 | // 2 Player Mode: Add an extra set of base pieces, hexominoes, and heptominoes; decrease board to 72x72 (coverage = 88)
+
+// Regular Blokus Game
+┌─┐ Blokus ┌┐ Current Player: 1/3 | Round: 00 ┌───────────────┐ New | Reset | Back | Quit ┌─┐
+│ ┌┐ Board ┌┐ Progress: 000/400 | (000%) ┌─┐ ┌01/04┐ ┌┐ PLAYER 1 - [16 ch max name] ┌─────┐ │
+│ │                                        │ │     │ │Tiles Remaining:     89/89 | (000%) │ │
+│ │                                        │ │  ▀  │ ├────────────────────────────────────┤ │
+│ │                                        │ │     │ │Pieces Remaining (By Polyomino):    │ │
+│ │                                        │ │     │ │  Default (1-5):   000/000 | (000%) │ │
+│ │                                        │ │  ▀▀ │ │  Hexomino  (6):     00/00 | (000%) │ │
+│ │                                        │ │     │ │  Heptomino (7):   000/000 | (000%) │ │
+│ │                                        │ │     │ └────────────────────────────────────┘ │
+│ │                                        │ │ ▀▀▀ │ ┌┐ PLAYER 2 - [16 ch max name] ┌─────┐ │
+│ │                                        │ │     │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                        │ │   ▄ │ │Pieces:     21/21 | 00/00 | 000/000 │ │
+│ │                                        │ │  ▀▀ │ └────────────────────────────────────┘ │
+│ │                                        │ │     │ ┌┐ PLAYER 3 - [16 ch max name] ┌─────┐ │
+│ │                                        │ │     │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                        │ │ ▀▀▀▀│ │Pieces: 021/021 | 000/000 | 000/000 │ │
+│ │                                        │ │     │ └────────────────────────────────────┘ │ // When viewing a player
+│ │                                        │ │   ▄ │ ┌┐ GAME ACTIONS ┌─────┐ ┌┐ VIEW ┌────┐ │ ┌┐ PLAYER 1 ┌┐
+│ │                                        │ │ ▀▀▀ │ │   Add/Edit Piece    │ │   Player 1 │ │ │            │
+│ │                                        │ │     │ │   End Current Turn  │ │   Player 2 │ │ │ <- Page -> │
+│ │                                        │ │     │ │   Run Out of Moves  │ │   Player 3 │ │ │            │
+│ │                                        │ │     │ │   Manage Game       │ │   Player 4 │ │ │    Exit    │
+│ └────────────────────────────────────────┘ └─────┘ └─────────────────────┘ └────────────┘ │ └────────────┘
+└───────────────────────────────────────────────────────────────────────────────────────────┘
+
+// Maximum Sized Blokus Game (including all polyominoes levels 1-7)
+┌─┐ Blokus ┌┐ Current Player: 1/4 | Round: 000 ┌────────────────────────────────────────────────────────────────────────────────────────────────┐ New | Reset | Back | Quit ┌─┐
+│ ┌┐ Board ┌┐ Progress: 0000/4900 | (000%) ┌───────────────────────────────────────────────────────────────────────────────┐ ┌─01/10─┐ ┌┐ PLAYER 1 - [16 ch max name] ┌─────┐ │
+│ │                                                                                                                        │ │       │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                                                                                                        │ │▄▄▄▄▄▄▄│ ├────────────────────────────────────┤ │
+│ │                                                                                                                        │ │       │ │Pieces Remaining (By Polyomino):    │ │
+│ │                                                                                                                        │ │       │ │  Default (1-5):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │       │ │  Hexomino  (6):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄▄▄█│ │  Heptomino (7):   000/000 | (000%) │ │
+│ │                                                                                                                        │ │       │ └────────────────────────────────────┘ │
+│ │                                                                                                                        │ │       │ ┌┐ PLAYER 2 - [16 ch max name] ┌─────┐ │
+│ │                                                                                                                        │ │       │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄▄█▄│ ├────────────────────────────────────┤ │
+│ │                                                                                                                        │ │       │ │Pieces Remaining (By Polyomino):    │ │
+│ │                                                                                                                        │ │       │ │  Default (1-5):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │       │ │  Hexomino  (6):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄█▄▄│ │  Heptomino (7):   000/000 | (000%) │ │
+│ │                                                                                                                        │ │       │ └────────────────────────────────────┘ │
+│ │                                                                                                                        │ │       │ ┌┐ PLAYER 3 - [16 ch max name] ┌─────┐ │
+│ │                                                                                                                        │ │     ▄ │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄▄█ │ ├────────────────────────────────────┤ │
+│ │                                                                                                                        │ │       │ │Pieces Remaining (By Polyomino):    │ │
+│ │                                                                                                                        │ │       │ │  Default (1-5):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │    ▄  │ │  Hexomino  (6):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄█▄ │ │  Heptomino (7):   000/000 | (000%) │ │
+│ │                                                                                                                        │ │       │ └────────────────────────────────────┘ │
+│ │                                                                                                                        │ │       │ ┌┐ PLAYER 4 - [16 ch max name] ┌─────┐ │
+│ │                                                                                                                        │ │   ▄   │ │Tiles Remaining: 0089/0089 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄█▄▄ │ ├────────────────────────────────────┤ │
+│ │                                                                                                                        │ │       │ │Pieces Remaining (By Polyomino):    │ │
+│ │                                                                                                                        │ │       │ │  Default (1-5):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │       │ │  Hexomino  (6):     00/00 | (000%) │ │
+│ │                                                                                                                        │ │ ▄▄▄██ │ │  Heptomino (7):   000/000 | (000%) │ │
+│ │                                                                                                                        │ │       │ └────────────────────────────────────┘ │
+│ │                                                                                                                        │ │       │ ┌┐ GAME ACTIONS ┌─────┐ ┌┐ VIEW ┌────┐ │
+│ │                                                                                                                        │ │       │ │   Add/Edit Piece    │ │   Player 1 │ │
+│ │                                                                                                                        │ │ ▄▄█▄█ │ │   End Current Turn  │ │   Player 2 │ │
+│ │                                                                                                                        │ │       │ │   Run Out of Moves  │ │   Player 3 │ │
+│ │                                                                                                                        │ │       │ │   Manage Game       │ │   Player 4 │ │
+│ │                                                                                                                        │ │       │ └─────────────────────┘ └────────────┘ │
+│ │                                                                                                                        │ │ ▄█▄▄█ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │ █▄▄▄█ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │ ▄▄██▄ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │ ▄█▄█▄ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │     ▄ │                                        │
+│ │                                                                                                                        │ │     █ │                                        │
+│ │                                                                                                                        │ │  ▀▀▀▀ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │    ▄  │                                        │
+│ │                                                                                                                        │ │    █  │                                        │
+│ │                                                                                                                        │ │  ▀▀▀▀ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │    ▄█ │                                        │
+│ │                                                                                                                        │ │  ▀▀▀▀ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │   ▄ █ │                                        │
+│ │                                                                                                                        │ │  ▀▀▀▀ │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ │                                                                                                                        │ │       │                                        │
+│ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ └───────┘                                        │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
