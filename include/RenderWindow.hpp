@@ -18,6 +18,14 @@
 #define LINE_THICKNESS_DRAW_CLOCKWISE 1         // Start point is on the counter clockwise border line
 #define LINE_THICKNESS_DRAW_COUNTERCLOCKWISE 2  // Start point is on the clockwise border line
 
+#define THICKRECT_INNER 0
+#define THICKRECT_OUTER 1
+#define THICKRECT_MIDDLE 2
+
+#define THICKCIRC_INNER 0
+#define THICKCIRC_OUTER 1
+#define THICKCIRC_MIDDLE 2
+
 class RenderWindow {
     private:
         SDL_Window* Window;
@@ -37,13 +45,13 @@ class RenderWindow {
 
         int getW() const;
         int setW(const int &w);
-        int adjustW(const int &amount);
+        int adjW(const int &amount);
         int getH() const;
         int setH(const int &h);
-        int adjustH(const int &amount);
+        int adjH(const int &amount);
         SDL_Point getDims() const;
         SDL_Point setDims(const int &w, const int &h);
-        SDL_Point adjustDims(const int &w, const int &h);
+        SDL_Point adjDims(const int &w, const int &h);
         SDL_Point updateDims();
         int getW_2() const;
         int getH_2() const;
@@ -60,6 +68,7 @@ class RenderWindow {
         void handleEvent(const SDL_WindowEvent &event);
 
         void drawPixel(const int &x, const int &y, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        
         void drawLine(const int &x1, const int &y1, const int &x2, const int &y2, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         /** Draw a line with extra pixels drawn in if specified
          * @param x1 Starting x-position
@@ -70,9 +79,13 @@ class RenderWindow {
          * @param color The SDL_Color to use when drawing the line    */
         void drawLineOverlap(const int &x1, const int &y1, const int &x2, const int &y2, const unsigned char overlapType = LINE_OVERLAP_NONE, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         void drawThickLine(const int x1, const int y1, const int x2, const int y2, const int thickness, const unsigned char thicknessMode = LINE_THICKNESS_MIDDLE, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        
         void drawRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void drawThickRectangle(const int &x, const int &y, const int &w, const int &h, const int &thickness, const unsigned char mode = THICKRECT_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         void fillRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        
         void drawCircle(const int &x, const int &y, const int &r, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char mode = THICKCIRC_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         void fillCircle(const int &x, const int &y, const int &r, const SDL_Color &color = PresetColors[COLOR_WHITE]);
 
         SDL_Texture* loadTexture(const std::string &path);

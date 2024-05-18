@@ -121,6 +121,8 @@ int main(int argc, char* args[]) {
             MainLoop.madeChanges = false;
             Window.clear();
 
+            Window.drawThickRectangle(-200, 100, 400, 200, 15, THICKRECT_INNER, PresetColors[COLOR_CYAN]);
+            Window.drawThickCircle(0, 0, 50, 10, THICKCIRC_OUTER, PresetColors[COLOR_TEAL]);
 
             Window.show();
         }

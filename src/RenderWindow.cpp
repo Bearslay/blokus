@@ -24,7 +24,7 @@ int RenderWindow::setW(const int &w) {
     SDL_SetWindowSize(Window, W, H);
     return output;
 }
-int RenderWindow::adjustW(const int &amount) {
+int RenderWindow::adjW(const int &amount) {
     const int output = W;
     W += amount;
     W_2 = W / 2;
@@ -39,7 +39,7 @@ int RenderWindow::setH(const int &h) {
     SDL_SetWindowSize(Window, W, H);
     return output;
 }
-int RenderWindow::adjustH(const int &amount) {
+int RenderWindow::adjH(const int &amount) {
     const int output = W;
     H += amount;
     H_2 = H / 2;
@@ -56,7 +56,7 @@ SDL_Point RenderWindow::setDims(const int &w, const int &h) {
     SDL_SetWindowSize(Window, W, H);
     return output;
 }
-SDL_Point RenderWindow::adjustDims(const int &w, const int &h) {
+SDL_Point RenderWindow::adjDims(const int &w, const int &h) {
     const SDL_Point output = {W, H};
     W += w;
     W_2 = W / 2;
@@ -77,7 +77,7 @@ int RenderWindow::getH_2() const {return H_2;}
 
 const char* RenderWindow::getTitle() const {return SDL_GetWindowTitle(Window);}
 const char* RenderWindow::setTitle(const char* title) {
-    const char* output = getTitle();
+    const char* output = RenderWindow::getTitle();
     SDL_SetWindowTitle(Window, title);
     return output;
 }
@@ -90,10 +90,10 @@ void RenderWindow::show() {SDL_RenderPresent(Renderer);}
 
 bool RenderWindow::toggleFullscreen(const bool &trueFullscreen) {
     const bool output = IsFullscreen;
-    if   (!IsFullscreen) {SDL_SetWindowFullscreen(Window, trueFullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP);}
-    else                 {SDL_SetWindowFullscreen(Window, SDL_FALSE);}
+    if (!IsFullscreen) {SDL_SetWindowFullscreen(Window, trueFullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP);}
+    else {SDL_SetWindowFullscreen(Window, SDL_FALSE);}
     IsFullscreen = !IsFullscreen;
-    updateDims();
+    RenderWindow::updateDims();
     return output;
 }
 void RenderWindow::centerMouse() {SDL_WarpMouseInWindow(Window, W_2, H_2);}
@@ -102,7 +102,7 @@ void RenderWindow::handleEvent(const SDL_WindowEvent &event) {
     switch (event.event) {
         case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-            updateDims();
+            RenderWindow::updateDims();
             break;
     }
 }
@@ -111,25 +111,53 @@ void RenderWindow::drawPixel(const int &x, const int &y, const SDL_Color &color)
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoint(Renderer, W_2 + x, H_2 - y);
 }
+
 void RenderWindow::drawLine(const int &x1, const int &y1, const int &x2, const int &y2, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawLine(Renderer, W_2 + x1, H_2 - y1, W_2 + x2, H_2 - y2);
 }
+
 void RenderWindow::drawRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
     SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
     SDL_RenderDrawRect(Renderer, &dst);
+}
+void RenderWindow::drawThickRectangle(const int &x, const int &y, const int &w, const int &h, const int &thickness, const unsigned char mode, const SDL_Color &color) {
+    switch (mode) {
+        default:
+        case THICKRECT_INNER:
+            RenderWindow::fillRectangle(x, y, w, thickness, color);
+            RenderWindow::fillRectangle(x, y - h + thickness, w, thickness, color);
+            RenderWindow::fillRectangle(x, y - thickness, thickness, h - thickness * 2, color);
+            RenderWindow::fillRectangle(x + w - thickness, y - thickness, thickness, h - thickness * 2, color);
+            break;
+        case THICKRECT_OUTER:
+            RenderWindow::fillRectangle(x - thickness, y + thickness, w + thickness * 2, thickness, color);
+            RenderWindow::fillRectangle(x - thickness, y - h, w + thickness * 2, thickness);
+            RenderWindow::fillRectangle(x - thickness, y, thickness, h);
+            RenderWindow::fillRectangle(x + w, y, thickness, h);
+            break;
+        case THICKRECT_MIDDLE:
+            RenderWindow::fillRectangle(x - thickness / 2, y + thickness / 2, w + thickness, thickness, color);
+            RenderWindow::fillRectangle(x - thickness / 2, y - h + thickness / 2, w + thickness, thickness, color);
+            RenderWindow::fillRectangle(x - thickness / 2, y - thickness / 2, thickness, h - thickness, color);
+            RenderWindow::fillRectangle(x + w - thickness / 2, y - thickness / 2, thickness, h - thickness, color);
+            break;
+    }
 }
 void RenderWindow::fillRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
     SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
     SDL_RenderFillRect(Renderer, &dst);
 }
+
 void RenderWindow::drawCircle(const int &x, const int &y, const int &r, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
     const int diameter = r * 2;
-    int ox    = r - 1;    int oy = 0;
-    int tx    = 1;        int ty = 1;
+    int ox = r - 1;
+    int oy = 0;
+    int tx = 1;
+    int ty = 1;
     int error = tx - diameter;
     while (ox >= oy) {
         SDL_RenderDrawPoint(Renderer, W_2 + x + ox, H_2 - y - oy);
@@ -143,17 +171,38 @@ void RenderWindow::drawCircle(const int &x, const int &y, const int &r, const SD
         if (error <= 0) {
             oy++;
             error += ty;
-            ty    += 2;
+            ty += 2;
         } else if (error > 0) {
             ox--;
-            tx    += 2;
+            tx += 2;
             error += tx - diameter;
         }
     }
 }
+void RenderWindow::drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char mode, const SDL_Color &color) {
+    switch (mode) {
+        default:
+        case THICKCIRC_INNER:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawCircle(x, y, r - i, color);
+            }
+            break;
+        case THICKCIRC_OUTER:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawCircle(x, y, r + i, color);
+            }
+            break;
+        case THICKCIRC_MIDDLE:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawCircle(x, y, r - thickness / 2 + i, color);
+            }
+            break;
+    }
+}
 void RenderWindow::fillCircle(const int &x, const int &y, const int &r, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
-    int ox    = 0;    int oy = r;
+    int ox = 0;
+    int oy = r;
     int error = r - 1;
     while (oy >= ox) {
         SDL_RenderDrawLine(Renderer, W_2 + x - oy, H_2 - y + ox, W_2 + x + oy, H_2 - y + ox);
@@ -202,7 +251,7 @@ void RenderWindow::renderTexture(const Texture &texture, const SDL_Point &pos) {
 }
 void RenderWindow::renderTexture(const Texture &texture, const int &x, const int &y) {
     const SDL_Point pos = {x, y};
-    renderTexture(texture, pos);
+    RenderWindow::renderTexture(texture, pos);
 }
 
 void RenderWindow::renderText(TTF_Font *font, const char16_t* text, const SDL_Point &pos, const Uint32 wrapWidth, const SDL_Color &color) {
