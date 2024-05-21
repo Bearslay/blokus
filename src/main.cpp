@@ -31,7 +31,7 @@ int main(int argc, char* args[]) {
 
     struct {
         // Quit the program
-        int Quit = SDL_SCANCODE_F4;
+        int Quit = SDL_SCANCODE_ESCAPE;
         // Either capture or release the mouse (mainly useful for 3D stuff tbh)
         int ToggleCapture = SDL_SCANCODE_F1;
     }
