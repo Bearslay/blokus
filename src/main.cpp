@@ -117,12 +117,11 @@ int main(int argc, char* args[]) {
         }
 
         // Only do a fresh render if changes were made to what would appear on-screen
-        if (MainLoop.madeChanges) {
+        if (true) {
             MainLoop.madeChanges = false;
             Window.clear();
 
-            Window.drawThickRectangle(-200, 100, 400, 200, 15, THICKRECT_INNER, PresetColors[COLOR_CYAN]);
-            Window.drawThickCircle(0, 0, 50, 10, THICKCIRC_OUTER, PresetColors[COLOR_TEAL]);
+            Window.drawThickRectangle(-Window.getH_2() + 30, Window.getH_2() - 30, Window.getH() - 60, Window.getH() - 60, 15, THICKRECT_INNER, PresetColors[COLOR_WHITE]);
 
             Window.show();
         }
