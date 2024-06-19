@@ -4,6 +4,7 @@ RenderWindow::RenderWindow(const char* title, const int &w, const int &h, Uint32
     if ((Window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {std::cout << "Window \"" << title << "\" failed to initialize\nERROR: " << SDL_GetError() << "\n";}
     if ((Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED)) == NULL) {std::cout << "Renderer for \"" << title << "\" failed to initialize\nERROR: " << SDL_GetError() << "\n";}
 }
+RenderWindow::RenderWindow() {RenderWindow("window", 1280, 720, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);}
 RenderWindow::~RenderWindow() {
     SDL_DestroyRenderer(Renderer);
     SDL_DestroyWindow(Window);
@@ -75,6 +76,12 @@ SDL_Point RenderWindow::updateDims() {
 int RenderWindow::getW_2() const {return W_2;}
 int RenderWindow::getH_2() const {return H_2;}
 
+bool RenderWindow::hasLockedRatio() const {return LockRatio;}
+bool RenderWindow::setRatioLock(const bool &locked) {return btils::set<bool>(LockRatio, locked);}
+bool RenderWindow::toggleRatioLock() {return btils::set<bool>(LockRatio, !LockRatio);}
+std::pair<Uint8, Uint8> RenderWindow::getRatio() const {return Ratio;}
+std::pair<Uint8, Uint8> RenderWindow::setRatio(const std::pair<Uint8, Uint8> &ratio) {return btils::set<std::pair<Uint8, Uint8>>(Ratio, ratio);}
+
 const char* RenderWindow::getTitle() const {return SDL_GetWindowTitle(Window);}
 const char* RenderWindow::setTitle(const char* title) {
     const char* output = RenderWindow::getTitle();
@@ -102,6 +109,16 @@ void RenderWindow::handleEvent(const SDL_WindowEvent &event) {
     switch (event.event) {
         case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_SIZE_CHANGED:
+            if (LockRatio) {
+                int w, h;
+                SDL_GetWindowSize(Window, &w, &h);
+                
+                if (std::abs(W - w) / Ratio.first > std::abs(H - h) / Ratio.second) {
+                    SDL_SetWindowSize(Window, (int)(h * (double)(Ratio.first / Ratio.second)), h);
+                } else {
+                    SDL_SetWindowSize(Window, w, (int)(w * (double)(Ratio.second / Ratio.first)));
+                }
+            }
             RenderWindow::updateDims();
             break;
     }
@@ -109,35 +126,51 @@ void RenderWindow::handleEvent(const SDL_WindowEvent &event) {
 
 void RenderWindow::drawPixel(const int &x, const int &y, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawPoint(Renderer, W_2 + x, H_2 - y);
+
+    if (!StretchGraphicsFromStandard) {
+        SDL_RenderDrawPoint(Renderer, W_2 + x, H_2 - y);
+        return;
+    }
+    SDL_RenderDrawPoint(Renderer, W_2 + W * x / StandardWidth, H_2 - H * y / StandardHeight);
 }
 
 void RenderWindow::drawLine(const int &x1, const int &y1, const int &x2, const int &y2, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawLine(Renderer, W_2 + x1, H_2 - y1, W_2 + x2, H_2 - y2);
+
+    if (!StretchGraphicsFromStandard) {
+        SDL_RenderDrawLine(Renderer, W_2 + x1, H_2 - y1, W_2 + x2, H_2 - y2);
+        return;
+    }
+    SDL_RenderDrawLine(Renderer, W_2 + W * x1 / StandardWidth, H_2 - H * y1 / StandardHeight, W_2 + W * x2 / StandardWidth, H_2 - H * y2 / StandardHeight);
 }
 
 void RenderWindow::drawRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
-    SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
+    
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
+        SDL_RenderDrawRect(Renderer, &dst);
+        return;
+    }
+    const SDL_Rect dst = {W_2 + W * x / StandardWidth, H_2 - H * y / StandardHeight, w * W / StandardWidth, h * H / StandardHeight};
     SDL_RenderDrawRect(Renderer, &dst);
 }
 void RenderWindow::drawThickRectangle(const int &x, const int &y, const int &w, const int &h, const int &thickness, const unsigned char mode, const SDL_Color &color) {
     switch (mode) {
         default:
-        case THICKRECT_INNER:
+        case THICKSHAPE_INNER:
             RenderWindow::fillRectangle(x, y, w, thickness, color);
             RenderWindow::fillRectangle(x, y - h + thickness, w, thickness, color);
             RenderWindow::fillRectangle(x, y - thickness, thickness, h - thickness * 2, color);
             RenderWindow::fillRectangle(x + w - thickness, y - thickness, thickness, h - thickness * 2, color);
             break;
-        case THICKRECT_OUTER:
+        case THICKSHAPE_OUTER:
             RenderWindow::fillRectangle(x - thickness, y + thickness, w + thickness * 2, thickness, color);
             RenderWindow::fillRectangle(x - thickness, y - h, w + thickness * 2, thickness);
             RenderWindow::fillRectangle(x - thickness, y, thickness, h);
             RenderWindow::fillRectangle(x + w, y, thickness, h);
             break;
-        case THICKRECT_MIDDLE:
+        case THICKSHAPE_MIDDLE:
             RenderWindow::fillRectangle(x - thickness / 2, y + thickness / 2, w + thickness, thickness, color);
             RenderWindow::fillRectangle(x - thickness / 2, y - h + thickness / 2, w + thickness, thickness, color);
             RenderWindow::fillRectangle(x - thickness / 2, y - thickness / 2, thickness, h - thickness, color);
@@ -147,7 +180,13 @@ void RenderWindow::drawThickRectangle(const int &x, const int &y, const int &w, 
 }
 void RenderWindow::fillRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color) {
     SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
-    SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
+    
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect dst = {W_2 + x, H_2 - y, w, h};
+        SDL_RenderFillRect(Renderer, &dst);
+        return;
+    }
+    const SDL_Rect dst = {W_2 + W * x / StandardWidth, H_2 - H * y / StandardHeight, w * W / StandardWidth, h * H / StandardHeight};
     SDL_RenderFillRect(Renderer, &dst);
 }
 
@@ -179,20 +218,20 @@ void RenderWindow::drawCircle(const int &x, const int &y, const int &r, const SD
         }
     }
 }
-void RenderWindow::drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char mode, const SDL_Color &color) {
+void RenderWindow::drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char &mode, const SDL_Color &color) {
     switch (mode) {
         default:
-        case THICKCIRC_INNER:
+        case THICKSHAPE_INNER:
             for (int i = 0; i < thickness; i++) {
                 RenderWindow::drawCircle(x, y, r - i, color);
             }
             break;
-        case THICKCIRC_OUTER:
+        case THICKSHAPE_OUTER:
             for (int i = 0; i < thickness; i++) {
                 RenderWindow::drawCircle(x, y, r + i, color);
             }
             break;
-        case THICKCIRC_MIDDLE:
+        case THICKSHAPE_MIDDLE:
             for (int i = 0; i < thickness; i++) {
                 RenderWindow::drawCircle(x, y, r - thickness / 2 + i, color);
             }
@@ -223,6 +262,76 @@ void RenderWindow::fillCircle(const int &x, const int &y, const int &r, const SD
     }
 }
 
+void RenderWindow::drawEllipse(const int &x, const int &y, const int &rx, const int &ry, const SDL_Color &color) {
+    SDL_SetRenderDrawColor(Renderer, color.r, color.g, color.b, color.a);
+    double dx, dy, d1, d2, ox, oy;
+    ox = 0;
+    oy = ry;
+
+    d1 = (ry * ry) - (rx * rx * ry) + (0.25 * rx * rx);
+    dx = 2 * ry * ry * ox;
+    dy = 2 * rx * rx * oy;
+ 
+    while (dx < dy) {
+        SDL_RenderDrawPoint(Renderer, W_2 + x + ox, H_2 - y - oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x - ox, H_2 - y - oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x + ox, H_2 - y + oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x - ox, H_2 - y + oy);
+
+        if (d1 < 0) {
+            ox++;
+            dx = dx + (2 * ry * ry);
+            d1 = d1 + dx + (ry * ry);
+        } else {
+            ox++;
+            oy--;
+            dx = dx + (2 * ry * ry);
+            dy = dy - (2 * rx * rx);
+            d1 = d1 + dx - dy + (ry * ry);
+        }
+    }
+    d2 = ((ry * ry) * ((ox + 0.5) * (ox + 0.5))) + ((rx * rx) * ((oy - 1) * (oy - 1))) - (rx * rx * ry * ry);
+
+    while (oy >= 0) {
+        SDL_RenderDrawPoint(Renderer, W_2 + x + ox, H_2 - y - oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x - ox, H_2 - y - oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x + ox, H_2 - y + oy);
+        SDL_RenderDrawPoint(Renderer, W_2 + x - ox, H_2 - y + oy);
+
+        if (d2 > 0) {
+            oy--;
+            dy = dy - (2 * rx * rx);
+            d2 = d2 + (rx * rx) - dy;
+        } else {
+            oy--;
+            ox++;
+            dx = dx + (2 * ry * ry);
+            dy = dy - (2 * rx * rx);
+            d2 = d2 + dx - dy + (rx * rx);
+        }
+    }
+}
+void RenderWindow::drawThickEllipse(const int &x, const int &y, const int &rx, const int &ry, const int &thickness, const unsigned char &mode, const SDL_Color &color) {
+    switch (mode) {
+        default:
+        case THICKSHAPE_INNER:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawEllipse(x, y, rx - i, ry - i, color);
+            }
+            break;
+        case THICKSHAPE_OUTER:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawEllipse(x, y, rx + i, ry + i, color);
+            }
+            break;
+        case THICKSHAPE_MIDDLE:
+            for (int i = 0; i < thickness; i++) {
+                RenderWindow::drawEllipse(x, y, rx - thickness / 2 + i, ry - thickness / 2 + i, color);
+            }
+            break;
+    }
+}
+
 SDL_Texture* RenderWindow::loadTexture(const std::string &path) {
     SDL_Texture* output = NULL;
     if ((output = IMG_LoadTexture(Renderer, path.c_str())) == NULL) {std::cout << "Failed to load texture\nERROR: " << SDL_GetError() << "\n";}
@@ -230,24 +339,44 @@ SDL_Texture* RenderWindow::loadTexture(const std::string &path) {
 }
 
 void RenderWindow::renderTexture(SDL_Texture* texture, const SDL_Rect &src, const SDL_Rect &dst) {
-    const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+        SDL_RenderCopy(Renderer, texture, &src, &destination);
+        return;
+    }
+    const SDL_Rect destination = {W_2 + W * dst.x / StandardWidth, H_2 - H * dst.y / StandardHeight, W * dst.w / StandardWidth, H * dst.h / StandardHeight};
     SDL_RenderCopy(Renderer, texture, &src, &destination);
 }
 void RenderWindow::renderTexture(SDL_Texture* texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, const SDL_Point &center, const SDL_RendererFlip &flip) {
-    const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+        SDL_RenderCopyEx(Renderer, texture, &src, &destination, angle, &center, flip);
+        return;
+    }
+    const SDL_Rect destination = {W_2 + W * dst.x / StandardWidth, H_2 - H * dst.y / StandardHeight, W * dst.w / StandardWidth, H * dst.h / StandardHeight};
     SDL_RenderCopyEx(Renderer, texture, &src, &destination, angle, &center, flip);
 }
 void RenderWindow::renderTexture(const Texture &texture, const SDL_Rect &dst) {
-    const SDL_Rect source = texture.getFrame();
-    const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+    const SDL_Rect frame = texture.getFrame();
     const SDL_Point center = texture.getCenter();
-    SDL_RenderCopyEx(Renderer, texture.getTexture(), &source, &destination, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect destination = {W_2 + dst.x, H_2 - dst.y, dst.w, dst.h};
+        SDL_RenderCopyEx(Renderer, texture.getTexture(), &frame, &destination, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
+        return;
+    }
+    const SDL_Rect destination = {W_2 + W * dst.x / StandardWidth, H_2 - H * dst.y / StandardHeight, W * dst.w / StandardWidth, H * dst.h / StandardHeight};
+    SDL_RenderCopyEx(Renderer, texture.getTexture(), &frame, &destination, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
 }
 void RenderWindow::renderTexture(const Texture &texture, const SDL_Point &pos) {
-    const SDL_Rect src = texture.getFrame();
-    const SDL_Rect dst = {W_2 + pos.x, H_2 - pos.y, texture.getFrame().w, texture.getFrame().h};
+    const SDL_Rect frame = texture.getFrame();
     const SDL_Point center = texture.getCenter();
-    SDL_RenderCopyEx(Renderer, texture.getTexture(), &src, &dst, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
+    if (!StretchGraphicsFromStandard) {
+        const SDL_Rect dst = {W_2 + pos.x, H_2 - pos.y, texture.getFrame().w, texture.getFrame().h};
+        SDL_RenderCopyEx(Renderer, texture.getTexture(), &frame, &dst, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
+        return;
+    }
+    const SDL_Rect dst = {W_2 + W * pos.x / StandardWidth, H_2 - H * pos.y / StandardHeight, W * texture.getFrame().w / StandardWidth, H * texture.getFrame().h / StandardHeight};
+    SDL_RenderCopyEx(Renderer, texture.getTexture(), &frame, &dst, -texture.getAngle() * 180 / M_PI, &center, texture.getFlip());
 }
 void RenderWindow::renderTexture(const Texture &texture, const int &x, const int &y) {
     const SDL_Point pos = {x, y};
@@ -256,8 +385,17 @@ void RenderWindow::renderTexture(const Texture &texture, const int &x, const int
 
 void RenderWindow::renderText(TTF_Font *font, const char16_t* text, const SDL_Point &pos, const Uint32 wrapWidth, const SDL_Color &color) {
     SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, wrapWidth);
-    renderTexture(SDL_CreateTextureFromSurface(Renderer, surface), {0, 0, surface->w, surface->h}, {pos.x - surface->w / 2, pos.y + surface->h / 2, surface->w, surface->h}, 0, {0, 0}, SDL_FLIP_NONE);
+    renderTexture(SDL_CreateTextureFromSurface(Renderer, surface), {0, 0, surface->w, surface->h}, {pos.x - surface->w / 2, pos.y + surface->h / 2, surface->w, surface->h});
     SDL_FreeSurface(surface);
+}
+void RenderWindow::renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color) {
+    SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, dst.w);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(Renderer, surface);
+
+    RenderWindow::renderTexture(texture, {0, 0, surface->w, surface->h}, dst);
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
 }
 
 void RenderWindow::drawLineOverlap(const int &x1, const int &y1, const int &x2, const int &y2, const unsigned char overlapType, const SDL_Color &color) {

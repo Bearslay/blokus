@@ -1,14 +1,24 @@
-// Presets:
-//     Board = Size of Board
-//     Base# = Amount of default blokus pieces to give each player
-//     iHex = Give each player hexominoes
-//     iHept = Give each player heptominoes
+// Table Legend:
+//   Preset Name = Name of the given preset (not essential to gameplay)
+//   Board = Side length of board (in cells)
+//
+//   Base = Amount of base Blokus sets to give each player ( 21 piecse &  89 tiles per set)
+//   Hex  = Amount of Hexomino sets to give each player    ( 35 pieces & 210 tiles per set)
+//   Hept = Amount of Heptomino sets to give each player   (108 pieces & 756 tiles per set)
+//
+//   % Coverage = Given perfect play, the amount of cells taken up by pieces compared to the amount of cells on the board
+//                only the 3 and 4 player modes are considered b/c 2 player mode matches 4 player mode
+//                the goal is to match new presets with classic Blokus in terms of coverage (67% w/ 3 players & 89% w/ 4 players)
 
-        | Board | sBase | sHex | sHept | % Coverage |
-Regular | 20x20 |   1   |  0   |   0   | 3 67, 4 89 | // 2 Player Mode: Add an extra set of base pieces; board stays at 20x20 (coverage = 89)
-Hex     | 42x42 |   2   |  1   |   0   | 3 66, 4 88 | // 2 Player Mode: Add an extra set of base pieces and hexominoes; decrease board to 40x40 (coverage = 86)
-Hept    | 66x66 |   2   |  0   |   1   | 3 64, 4 86 | // 2 Player Mode: Add an extra set of base pieces and heptominoes; decrease board to 64x64 (coverage = 87)
-Maximum | 74x74 |   3   |  1   |   1   | 3 67, 4 90 | // 2 Player Mode: Add an extra set of base pieces, hexominoes, and heptominoes; decrease board to 72x72 (coverage = 88)
+Preset Name |  Board  | Base | Hex | Hept  |    % Coverage     
+------------+---------+------+-----+-------+-------------------
+Classic     |   020   |  01  |  0  |   0   | 3     67, 4     89
+Doubled     |   028   |  02  |  0  |   0   | 3     68, 4     91
+Hexominoes  |   042   |  02  |  1  |   0   | 3     66, 4     88
+Heptominoes |   070   |  04  |  0  |   1   | 3     68, 4     91
+Polyominoes |   082   |  06  |  1  |   1   | 3     67, 4     89
+Ultimate    |   100   |  09  |  3  |   1   | 3     66, 4     87
+Custom      | 020-100 | 1-12 | 0-4 |  0-2  | 3 67-103, 4 89-137
 
 // Regular Blokus Game
 ┌─┐ Blokus ┌┐ Current Player: 1/3 | Round: 00 ┌───────────────┐ New | Reset | Back | Quit ┌─┐

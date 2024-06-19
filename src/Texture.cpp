@@ -4,6 +4,7 @@ Texture::Texture() : Source(NULL), Center({}), Frame({}) {}
 Texture::Texture(SDL_Texture* texture) : Source(texture), Center({}), Frame({}) {}
 Texture::Texture(SDL_Texture* texture, SDL_Point center, SDL_Rect frame) : Source(texture), Center(center), Frame(frame) {}
 Texture::Texture(SDL_Texture* texture, SDL_Rect frame) : Source(texture), Center({frame.w / 2, frame.h / 2}), Frame(frame) {}
+Texture::~Texture() {SDL_DestroyTexture(Source);}
 
 SDL_Texture* Texture::getTexture() const {return Source;}
 SDL_Point Texture::getCenter() const {return Center;}

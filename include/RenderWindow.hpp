@@ -5,7 +5,9 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <iostream>
+#include <utility>
 
+#include "btils_main.hpp"
 #include "PresetColors.hpp"
 #include "Texture.hpp"
 
@@ -18,13 +20,9 @@
 #define LINE_THICKNESS_DRAW_CLOCKWISE 1         // Start point is on the counter clockwise border line
 #define LINE_THICKNESS_DRAW_COUNTERCLOCKWISE 2  // Start point is on the clockwise border line
 
-#define THICKRECT_INNER 0
-#define THICKRECT_OUTER 1
-#define THICKRECT_MIDDLE 2
-
-#define THICKCIRC_INNER 0
-#define THICKCIRC_OUTER 1
-#define THICKCIRC_MIDDLE 2
+#define THICKSHAPE_INNER 0
+#define THICKSHAPE_OUTER 1
+#define THICKSHAPE_MIDDLE 2
 
 class RenderWindow {
     private:
@@ -36,9 +34,20 @@ class RenderWindow {
         int H_2;
         bool IsFullscreen = false;
 
+        bool LockRatio = false;
+        std::pair<Uint8, Uint8> Ratio = {16, 9};
+
+        bool StretchGraphicsFromStandard = true;
+        int StandardWidth = 1920;
+        int StandardHeight = 1080;
+
     public:
+        RenderWindow();
         RenderWindow(const char* title, const int &w, const int &h, Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
         ~RenderWindow();
+
+        SDL_Window* accessWindow() {return Window;}
+        SDL_Renderer* accessRenderer() {return Renderer;}
 
         int getRefreshRate() const;
         Uint32 getWindowFlags();
@@ -55,6 +64,16 @@ class RenderWindow {
         SDL_Point updateDims();
         int getW_2() const;
         int getH_2() const;
+
+        bool hasLockedRatio() const;
+        bool setRatioLock(const bool &locked);
+        bool toggleRatioLock();
+        std::pair<Uint8, Uint8> getRatio() const;
+        std::pair<Uint8, Uint8> setRatio(const std::pair<Uint8, Uint8> &ratio);
+
+        bool stretchesGraphics() const;
+        bool setGraphicalStretching(const bool &stretch);
+        bool toggleGraphicalStretching();
 
         const char* getTitle() const;
         const char* setTitle(const char* title);
@@ -81,12 +100,16 @@ class RenderWindow {
         void drawThickLine(const int x1, const int y1, const int x2, const int y2, const int thickness, const unsigned char thicknessMode = LINE_THICKNESS_MIDDLE, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         
         void drawRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color = PresetColors[COLOR_WHITE]);
-        void drawThickRectangle(const int &x, const int &y, const int &w, const int &h, const int &thickness, const unsigned char mode = THICKRECT_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void drawThickRectangle(const int &x, const int &y, const int &w, const int &h, const int &thickness, const unsigned char mode = THICKSHAPE_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         void fillRectangle(const int &x, const int &y, const int &w, const int &h, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         
         void drawCircle(const int &x, const int &y, const int &r, const SDL_Color &color = PresetColors[COLOR_WHITE]);
-        void drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char mode = THICKCIRC_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void drawThickCircle(const int &x, const int &y, const int &r, const int &thickness, const unsigned char &mode = THICKSHAPE_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
         void fillCircle(const int &x, const int &y, const int &r, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+
+        void drawEllipse(const int &x, const int &y, const int &rx, const int &ry, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void drawThickEllipse(const int &x, const int &y, const int &rx, const int &ry, const int &thickness, const unsigned char &mode = THICKSHAPE_INNER, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void fillEllipse(const int &x, const int &y, const int &rx, const int &ry, const SDL_Color &color = PresetColors[COLOR_WHITE]);
 
         SDL_Texture* loadTexture(const std::string &path);
 
@@ -96,7 +119,8 @@ class RenderWindow {
         void renderTexture(const Texture &texture, const SDL_Point &pos);
         void renderTexture(const Texture &texture, const int &x, const int &y);
 
-        void renderText(TTF_Font *font, const char16_t* text, const SDL_Point &pos, const Uint32 wrapWidth = 0, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void renderText(TTF_Font *font, const char16_t *text, const SDL_Point &pos, const Uint32 wrapWidth = 0, const SDL_Color &color = PresetColors[COLOR_WHITE]);
+        void renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color = PresetColors[COLOR_WHITE]);
 };
 
 #endif /* RENDERWINDOW */
