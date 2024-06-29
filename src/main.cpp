@@ -59,7 +59,9 @@ int main(int argc, char* args[]) {
     //     }
     // }
 
-    blokus::game g;
+    blokus::game g(70, 12, 4, 2, 4);
+    // blokus::game g(20, 1, 0, 0, 3);
+    // blokus::game g;
     g.run();
 
     return 0;
