@@ -72,6 +72,8 @@ namespace bengine {
             Uint16 baseWidth;
             Uint16 baseHeight;
 
+            SDL_PixelFormat pixelFormat;
+
             void changeDrawColor(const SDL_Color &color) {
                 if (SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to change renderer's drawing color";
@@ -109,10 +111,14 @@ namespace bengine {
                 Uint16 gcd = btils::gcd<Uint16>(this->width, this->height);
                 this->ratioX = this->width / gcd;
                 this->ratioY = this->height / gcd;
+
+                this->setPixelFormat();
             }
             ~window() {
                 SDL_DestroyRenderer(this->renderer);
                 SDL_DestroyWindow(this->win);
+                this->renderer = nullptr;
+                this->win = nullptr;
             }
 
             Uint16 refreshRate() const {
@@ -468,16 +474,54 @@ namespace bengine {
                 return output;
             }
 
+            SDL_PixelFormat getPixelFormat() const {
+                return this->pixelFormat;
+            }
+            SDL_PixelFormat setPixelFormat() {
+                const SDL_PixelFormat output = this->pixelFormat;
+                SDL_RendererInfo info;
+                if (SDL_GetRendererInfo(this->renderer, &info) != 0) {
+                    std::cout << "Window \"" << this->title << "\" failed to get a valid pixel format";
+                    bengine::window::printError();
+                    this->pixelFormat.format = SDL_PIXELFORMAT_UNKNOWN;
+                } else {
+                    this->pixelFormat.format = info.texture_formats[0];
+                }
+                return output;
+            }
+
+            void targetTexture(SDL_Texture *texture, const Uint16 &width, const Uint16 &height) {
+                if (this->pixelFormat.format == SDL_PIXELFORMAT_UNKNOWN) {
+                    bengine::window::setPixelFormat();
+                }
+                texture = SDL_CreateTexture(this->renderer, this->pixelFormat.format, SDL_TEXTUREACCESS_TARGET, width, height);
+                if (texture == NULL) {
+                    std::cout << "Window \"" << this->title << "\" failed to create texture canvas";
+                    bengine::window::printError();
+                } else {
+                    if (SDL_SetRenderTarget(this->renderer, texture) != 0) {
+                        std::cout << "Window \"" << this->title << "\" failed to switch the rendering target to the texture canvas";
+                        bengine::window::printError();
+                    }
+                }
+            }
+            void targetWindow() {
+                if (SDL_SetRenderTarget(this->renderer, NULL) != 0) {
+                    std::cout << "Window \"" << this->title << "\" failed to switch the rendering target to the window";
+                    bengine::window::printError();
+                }
+            }
+
             void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
                 if (this->stretchGraphics) {
                     const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
                     if (SDL_RenderCopy(this->renderer, texture, &src, &destination) != 0) {
-                        std::cout << "Window \"" << this->title << "\" failed to render texture";
+                        std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                         bengine::window::printError();
                     }
                 } else {
                     if (SDL_RenderCopy(this->renderer, texture, &src, &dst) != 0) {
-                        std::cout << "Window \"" << this->title << "\" failed to render texture";
+                        std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                         bengine::window::printError();
                     }
                 }
@@ -533,12 +577,12 @@ namespace bengine {
                 if (this->stretchGraphics) {
                     const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
                     if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &destination) != 0) {
-                        std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
+                        std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                         bengine::window::printError();
                     }
                 } else {
                     if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &dst) != 0) {
-                        std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
+                        std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                         bengine::window::printError();
                     }
                 }
@@ -580,6 +624,7 @@ namespace bengine {
                 SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, wrapWidth);
                 bengine::window::renderSDLTexture(SDL_CreateTextureFromSurface(this->renderer, surface), {0, 0, surface->w, surface->h}, {pos.x, pos.y, surface->w, surface->h});
                 SDL_FreeSurface(surface);
+                surface = nullptr;
             }
             void renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
                 SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, dst.w);
@@ -589,6 +634,8 @@ namespace bengine {
 
                 SDL_FreeSurface(surface);
                 SDL_DestroyTexture(texture);
+                surface = nullptr;
+                texture = nullptr;
             }
     };
 }

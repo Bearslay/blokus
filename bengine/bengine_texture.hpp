@@ -4,12 +4,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "btils_main.hpp"
+#include "bengine_window.hpp"
 
 namespace bengine {
     class basicTexture {
         protected:
-            SDL_Texture *source = NULL;
+            SDL_Texture *source = nullptr;
             SDL_Rect frame = {};
 
         public:
@@ -19,6 +19,7 @@ namespace bengine {
             }
             ~basicTexture() {
                 SDL_DestroyTexture(this->source);
+                this->source = nullptr;
             }
 
             void operator=(const bengine::basicTexture &rhs) {
@@ -30,13 +31,20 @@ namespace bengine {
                 return this->source;
             }
             SDL_Texture *setTexture(SDL_Texture *texture) {
-                return btils::set<SDL_Texture*>(this->source, texture);
+                SDL_Texture* output = this->source;
+                this->source = texture;
+                return output;
             }
             SDL_Rect getFrame() const {
                 return this->frame;
             }
             SDL_Rect setFrame(const SDL_Rect &frame) {
-                return btils::set<SDL_Rect>(this->frame, frame);
+                const SDL_Rect output = this->frame;
+                this->frame.x = frame.x;
+                this->frame.y = frame.y;
+                this->frame.w = frame.w;
+                this->frame.h = frame.h;
+                return output;
             }
     };
 
@@ -46,13 +54,13 @@ namespace bengine {
             SDL_Color colorMod = {255, 255, 255, 255};
 
         public:
-            moddedTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame = {}, const SDL_Color &colorMod = {255, 255, 255, 255}) {
+            moddedTexture(SDL_Texture *texture = nullptr, const SDL_Rect &frame = {}, const SDL_Color &colorMod = {255, 255, 255, 255}) {
                 bengine::basicTexture::setTexture(texture);
                 bengine::basicTexture::setFrame(frame);
                 bengine::moddedTexture::setColorMod(colorMod);
             }
             ~moddedTexture() {
-                SDL_DestroyTexture(this->source);
+                bengine::basicTexture::~basicTexture();
             }
 
             void operator=(const bengine::moddedTexture &rhs) {
@@ -67,7 +75,10 @@ namespace bengine {
             }
             SDL_BlendMode setBlendMode(const SDL_BlendMode &blendMode) {
                 SDL_SetTextureBlendMode(this->source, blendMode);
-                return btils::set<SDL_BlendMode>(this->blendMode, blendMode);
+
+                const SDL_BlendMode output = this->blendMode;
+                this->blendMode = blendMode;
+                return output;
             }
 
             SDL_Color getColorMod() const {
@@ -76,7 +87,13 @@ namespace bengine {
             SDL_Color setColorMod(const SDL_Color &colorMod) {
                 SDL_SetTextureColorMod(this->source, colorMod.r, colorMod.g, colorMod.b);
                 SDL_SetTextureAlphaMod(this->source, colorMod.a);
-                return btils::set<SDL_Color>(this->colorMod, colorMod);
+
+                const SDL_Color output = this->colorMod;
+                this->colorMod.r = colorMod.r;
+                this->colorMod.g = colorMod.g;
+                this->colorMod.b = colorMod.b;
+                this->colorMod.a = colorMod.a;
+                return output;
             }
 
             Uint8 getRedMod() const {
@@ -84,7 +101,10 @@ namespace bengine {
             }
             Uint8 setRedMod(const Uint8 &redMod) {
                 SDL_SetTextureColorMod(this->source, redMod, this->colorMod.g, this->colorMod.b);
-                return btils::set<Uint8>(this->colorMod.r, redMod);
+
+                const Uint8 output = this->colorMod.r;
+                this->colorMod.r = redMod;
+                return output;
             }
 
             Uint8 getGreenMod() const {
@@ -92,7 +112,10 @@ namespace bengine {
             }
             Uint8 setGreenMod(const Uint8 &greenMod) {
                 SDL_SetTextureColorMod(this->source, this->colorMod.r, greenMod, this->colorMod.b);
-                return btils::set<Uint8>(this->colorMod.g, greenMod);
+                
+                const Uint8 output = this->colorMod.g;
+                this->colorMod.g = greenMod;
+                return output;
             }
 
             Uint8 getBlueMod() const {
@@ -100,7 +123,10 @@ namespace bengine {
             }
             Uint8 setBlueMod(const Uint8 &blueMod) {
                 SDL_SetTextureColorMod(this->source, this->colorMod.r, this->colorMod.g, blueMod);
-                return btils::set<Uint8>(this->colorMod.b, blueMod);
+                
+                const Uint8 output = this->colorMod.b;
+                this->colorMod.b = blueMod;
+                return output;
             }
 
             Uint8 getAlphaMod() const {
@@ -108,7 +134,10 @@ namespace bengine {
             }
             Uint8 setAlphaMod(const Uint8 &alphaMod) {
                 SDL_SetTextureAlphaMod(this->source, alphaMod);
-                return btils::set<Uint8>(this->colorMod.a, alphaMod);
+                
+                const Uint8 output = this->colorMod.a;
+                this->colorMod.a = alphaMod;
+                return output;
             }
     };
 
@@ -127,7 +156,7 @@ namespace bengine {
                 bengine::shiftingTexture::setAngle(angle);
             }
             ~shiftingTexture() {
-                SDL_DestroyTexture(this->source);
+                bengine::moddedTexture::~moddedTexture();
             }
 
             void operator=(const bengine::shiftingTexture &rhs) {
@@ -160,17 +189,23 @@ namespace bengine {
                 return this->angle;
             }
             double setAngle(const double &angle) {
-                return btils::set<double>(this->angle, angle);
+                const double output = this->angle;
+                this->angle = angle;
+                return output;
             }
             double adjustAngle(const double &amount) {
-                return btils::adj<double>(this->angle, amount);
+                const double output = this->angle;
+                this->angle += angle;
+                return output;
             }
 
             SDL_RendererFlip getFlip() const {
                 return this->flip;
             }
             SDL_RendererFlip setFlip(const SDL_RendererFlip &flip) {
-                return btils::set<SDL_RendererFlip>(this->flip, flip);
+                const SDL_RendererFlip output = this->flip;
+                this->flip = flip;
+                return output;
             }
     };
 }
