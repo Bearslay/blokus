@@ -403,7 +403,7 @@ namespace blokus {
             }
 
             void compute() {
-                
+                this->visualsChanged = true;
             }
 
             void renderPlayer(const Uint8 &id) {
@@ -447,34 +447,27 @@ namespace blokus {
                 }
             }
             void updateBoard() {
-                // this->window.initTextureCanvas(this->board.size() * 64, this->board.size() * 64);
-                // this->window.setRenderTarget(RENDERTARGET_TEXTURE);
+                this->window.targetDummy();
+                this->window.initCanvas(this->board.size() * this->tile.getFrame().w, this->board.size() * this->tile.getFrame().h);
                 this->window.clear();
 
                 for (Uint8 i = 0; i < this->board.size(); i++) {
                     for (Uint8 j = 0; j < this->board.size(); j++) {
                         if (this->board.at(i).at(j) == 0) {
-                            this->window.renderBasicTexture(this->emptyCell, {j * this->tile.getFrame().w, i * this->tile.getFrame().h, this->tile.getFrame().w, this->tile.getFrame().h});
+                            this->window.renderBasicTexture(this->emptyCell, {j * this->emptyCell.getFrame().w, i * this->emptyCell.getFrame().h, this->emptyCell.getFrame().w, this->emptyCell.getFrame().h});
                         } else {
                             this->tile.setColorMod(this->players.at(this->board.at(i).at(j) - 1).getColor());
-                            this->window.renderModdedTexture(this->tile, {j * this->tile.getFrame().w, i * this->tile.getFrame().h, this->tile.getFrame().w, this->tile.getFrame().h});
+                            this->window.renderBasicTexture(this->tile, {j * this->tile.getFrame().w, i * this->tile.getFrame().h, this->tile.getFrame().w, this->tile.getFrame().h});
                         }
                     }
                 }
                 this->window.present();
-
-                // this->boardTexture.setTexture(this->window.getTextureCanvas());
-                // this->window.setRenderTarget(RENDERTARGET_WINDOW);
+                this->boardTexture.setTexture(this->window.copyCanvas());
+                this->window.targetWindow();
                 this->window.clear();
             }
             void renderBoard() {
-                this->window.renderBasicTexture(this->boardFrameBase, {454, 34, this->boardFrameBase.getFrame().w, this->boardFrameBase.getFrame().h});
-                for (Uint8 i = 0; i < this->players.size(); i++) {
-                    this->boardFrameCorner.setColorMod(this->players.at(i).getColor());
-                    this->window.renderModdedTexture(this->boardFrameCorner, {454 + (i > 0 && i < 3 ? this->boardFrameCorner.getFrame().w : 0), 34 + (i > 1 ? this->boardFrameCorner.getFrame().h : 0), this->boardFrameCorner.getFrame().w, this->boardFrameCorner.getFrame().h}, i * -90, {this->boardFrameCorner.getFrame().w / 2, this->boardFrameCorner.getFrame().h / 2}, SDL_FLIP_NONE);
-                }
-
-                // this->window.renderBasicTexture(this->boardFrame, {454, 34, this->boardFrame.getFrame().w, this->boardFrame.getFrame().h});
+                this->window.renderBasicTexture(this->boardFrame, {454, 34, this->boardFrame.getFrame().w, this->boardFrame.getFrame().h});
                 this->window.renderBasicTexture(this->boardTexture, {480, 60, 960, 960});
             }
             void render() {
@@ -512,32 +505,39 @@ namespace blokus {
                     this->players[3].setName(u"Charlie");
                 }
 
-                // Getting the frames set up for the textures related to the board
                 this->boardTexture.setFrame({0, 0, size * this->tile.getFrame().w, size * this->tile.getFrame().h});
                 this->boardFrame.setFrame({0, 0, this->boardFrameBase.getFrame().w, this->boardFrameBase.getFrame().h});
 
-                // Grid setup; includes initializing the board itself as well as the grid initial texture (function not used to save a tiny bit of performance b/c why not lol)
-                // this->window.initTextureCanvas(size * this->tile.getFrame().w, size * this->tile.getFrame().h);
-                // this->window.setRenderTarget(RENDERTARGET_TEXTURE);
+                // Grid setup; includes initializing the board itself as well as the grid's initial texture of empty cells
+                this->window.targetDummy();
+                this->window.initCanvas(size * this->tile.getFrame().w, size * this->tile.getFrame().h);
+                
                 this->window.clear();
-
                 for (Uint8 i = 0; i < size; i++) {
                     this->board.emplace_back();
                     for (Uint8 j = 0; j < size; j++) {
                         this->board[i].emplace_back(0);
-                        this->window.renderBasicTexture(this->emptyCell, {j * this->tile.getFrame().w, i * this->tile.getFrame().h, this->tile.getFrame().w, this->tile.getFrame().h});
+                        this->window.renderBasicTexture(this->emptyCell, {j * this->emptyCell.getFrame().w, i * this->emptyCell.getFrame().h, this->emptyCell.getFrame().w, this->emptyCell.getFrame().h});
                     }
                 }
                 this->window.present();
-                // this->boardTexture.setTexture(this->window.getTextureCanvas());
+                this->boardTexture.setTexture(this->window.copyCanvas());
                 
-                // Board frame setup; texture should not change after this bit
-                // this->window.initTextureCanvas(this->boardFrameBase.getFrame().w, this->boardFrameBase.getFrame().h);
-                // this->window.clear();
-
-                // this->window.present();
-                // this->boardFrame.setTexture(this->window.getTextureCanvas());
-                // this->window.setRenderTarget(RENDERTARGET_WINDOW);
+                // Board frame setup; the colored corners are added later once the players choose their colors
+                this->window.initCanvas(this->boardFrameBase.getFrame().w, this->boardFrameBase.getFrame().h);
+                
+                this->window.clear();
+                this->window.renderBasicTexture(this->boardFrameBase, {0, 0, this->boardFrameBase.getFrame().w, this->boardFrameBase.getFrame().h});
+                // TODO: Remove for loop and contents later
+                for (Uint8 i = 0; i < this->players.size(); i++) {
+                    this->boardFrameCorner.setColorMod(this->players.at(i).getColor());
+                    this->window.renderModdedTexture(this->boardFrameCorner, {i > 0 && i < 3 ? this->boardFrameCorner.getFrame().w : 0, i > 1 ? this->boardFrameCorner.getFrame().h : 0, this->boardFrameCorner.getFrame().w,
+                        this->boardFrameCorner.getFrame().h}, i * -90, {this->boardFrameCorner.getFrame().w / 2, this->boardFrameCorner.getFrame().h / 2}, SDL_FLIP_NONE);
+                }
+                this->window.present();
+                this->boardFrame.setTexture(this->window.copyCanvas());
+                
+                this->window.targetWindow();
                 this->window.clear();
             }
             ~game() {
