@@ -365,6 +365,9 @@ namespace bengine {
             void centerMouse() {
                 SDL_WarpMouseInWindow(this->win, this->halfWidth, this->halfHeight);
             }
+            void positionMouse(const Uint16 &x, const Uint16 &y) {
+                SDL_WarpMouseInWindow(this->win, x, y);
+            }
 
             void drawPixel(const int &x, const int &y, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
                 bengine::window::changeDrawColor(color);
