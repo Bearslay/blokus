@@ -13,6 +13,9 @@
 #define THICKSHAPE_OUTER 1
 #define THICKSHAPE_MIDDLE 2
 
+#define RENDERTARGET_WINDOW 0
+#define RENDERTARGET_DUMMY 1
+
 namespace bengine {
     const SDL_Color colors[16] = {
         {  0,   0,   0, 255},
@@ -53,8 +56,8 @@ namespace bengine {
 
     class window {
         private:
-            SDL_Window *win;
-            SDL_Renderer *renderer;
+            SDL_Window *win = NULL;
+            SDL_Renderer *renderer = NULL;
 
             Uint16 width;
             Uint16 height;
@@ -72,16 +75,20 @@ namespace bengine {
             Uint16 baseWidth;
             Uint16 baseHeight;
 
+            SDL_Texture *dummyTexture = NULL;
             SDL_PixelFormat pixelFormat;
+            bool renderTarget = RENDERTARGET_WINDOW;
 
-            void changeDrawColor(const SDL_Color &color) {
-                if (SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a) != 0) {
+            int changeDrawColor(const SDL_Color &color) {
+                const int output = SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
+                if (output != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to change renderer's drawing color";
                     bengine::window::printError();
                 }
+                return output;
             }
             void printError() const {
-                std::cout << "\nERROR: " << SDL_GetError() << "\n";
+                std::cout << "\nERROR [" << SDL_GetTicks() << "]: " << SDL_GetError() << "\n";
             }
 
             int stretchX(const int &x) const {
@@ -490,26 +497,66 @@ namespace bengine {
                 return output;
             }
 
-            void targetTexture(SDL_Texture *texture, const Uint16 &width, const Uint16 &height) {
+            int initCanvas(const Uint16 &width, const Uint16 &height) {
                 if (this->pixelFormat.format == SDL_PIXELFORMAT_UNKNOWN) {
                     bengine::window::setPixelFormat();
                 }
-                texture = SDL_CreateTexture(this->renderer, this->pixelFormat.format, SDL_TEXTUREACCESS_TARGET, width, height);
-                if (texture == NULL) {
+                this->dummyTexture = SDL_CreateTexture(this->renderer, this->pixelFormat.format, SDL_TEXTUREACCESS_TARGET, width, height);
+                if (this->dummyTexture == NULL) {
                     std::cout << "Window \"" << this->title << "\" failed to create texture canvas";
                     bengine::window::printError();
+                    return -1;
                 } else {
-                    if (SDL_SetRenderTarget(this->renderer, texture) != 0) {
-                        std::cout << "Window \"" << this->title << "\" failed to switch the rendering target to the texture canvas";
-                        bengine::window::printError();
+                    if (this->renderTarget == RENDERTARGET_DUMMY) {
+                        bengine::window::targetDummy();
+                    } else {
+                        bengine::window::targetWindow();
                     }
                 }
+                return 0;
             }
-            void targetWindow() {
-                if (SDL_SetRenderTarget(this->renderer, NULL) != 0) {
+            int targetDummy() {
+                const int output = SDL_SetRenderTarget(this->renderer, this->dummyTexture);
+                if (output != 0) {
+                    std::cout << "Window \"" << this->title << "\" failed to switch the rendering target to the texture canvas";
+                    bengine::window::printError();
+                } else {
+                    this->renderTarget = RENDERTARGET_DUMMY;
+                }
+                return output;
+            }
+            int targetWindow() {
+                const int output = SDL_SetRenderTarget(this->renderer, NULL);
+                if (output != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to switch the rendering target to the window";
                     bengine::window::printError();
+                } else {
+                    this->renderTarget = RENDERTARGET_WINDOW;
                 }
+                return output;
+            }
+            SDL_Texture* copyCanvas() {
+                int w, h;
+                SDL_BlendMode blendmode;
+
+                SDL_QueryTexture(this->dummyTexture, NULL, NULL, &w, &h);
+                SDL_GetTextureBlendMode(this->dummyTexture, &blendmode);
+
+                SDL_Texture* output = SDL_CreateTexture(this->renderer, this->pixelFormat.format, SDL_TEXTUREACCESS_TARGET, w, h);
+                SDL_SetTextureBlendMode(output, SDL_BLENDMODE_NONE);
+                
+                SDL_SetRenderTarget(this->renderer, output);
+                bengine::window::clear();
+                SDL_RenderCopy(this->renderer, this->dummyTexture, NULL, NULL);
+                bengine::window::present();
+                SDL_SetTextureBlendMode(output, blendmode);
+
+                if (this->renderTarget == RENDERTARGET_WINDOW) {
+                    bengine::window::targetWindow();
+                } else {
+                    bengine::window::targetDummy();
+                }
+                return output;
             }
 
             void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
