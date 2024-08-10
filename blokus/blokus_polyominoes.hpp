@@ -2,8 +2,9 @@
 #define BLOKUS_POLYOMINOES_hpp
 
 #include <vector>
-#include <utility>
 #include <fstream>
+#include <string>
+#include <iostream>
 
 /** Formatting for polyomino storage files:
  * d (dims of each polyomino; usually the amount of cells in each)
@@ -22,29 +23,79 @@
  * [polyomino c: grid line d]
 **/
 
-namespace blokus {
-    typedef enum {
-        AMT_MONOMINO = 1,
-        AMT_DOMINO = 1,
-        AMT_TROMINO = 2,
-        AMT_TETROMINO = 5,
-        AMT_PENTOMINO = 12,
-        AMT_HEXOMINO = 35,
-        AMT_HEPTOMINO = 108,
-        AMT_OCTOMINO = 369,
-        AMT_NONOMINO = 1285,
-        AMT_DECOMINO = 4655,
-        AMT_BASE = 21
-    } polyominoAmounts;
+// #define ALIGN_LEFT 0
+// #define ALIGN_CENTER 1
+// #define ALIGN_RIGHT 2
 
-    std::vector<std::vector<std::vector<bool>>> basePolyominoes, hexominoes, heptominoes;
+// class paddedGrid {
+//     public:
+//         unsigned int calcUsableLength(const unsigned int &length, const unsigned short &cellAmount, const unsigned short &gapDim) {
+//             return length - gapDim * (cellAmount - 1);
+//         }
+//         unsigned short calcCellDim(const unsigned int &length, const unsigned short &cellAmount, const unsigned short &gapDim) {
+//             return this->calcUsableLength(length, cellAmount, gapDim) / cellAmount;
+//         }
+//         unsigned short calcOffset(const unsigned int &length, const unsigned short &cellAmount, const unsigned short &gapDim, const unsigned char &alignment = ALIGN_CENTER) {
+//             switch (alignment) {
+//                 case ALIGN_LEFT:
+//                     return 0;
+//                 default:
+//                 case ALIGN_CENTER:
+//                     return (this->calcUsableLength(length, cellAmount, gapDim) - this->calcCellDim(length, cellAmount, gapDim) * cellAmount) / 2;
+//                 case ALIGN_RIGHT:
+//                     return this->calcUsableLength(length, cellAmount, gapDim) - this->calcCellDim(length, cellAmount, gapDim) * cellAmount;
+//             }
+//         }
+//         unsigned short calcOffset(const unsigned int &usableLength, const unsigned short &cellAmount, const unsigned short &cellDim, const unsigned char &alignment = ALIGN_CENTER) {
+//             switch (alignment) {
+//                 case ALIGN_LEFT:
+//                     return 0;
+//                 default:
+//                 case ALIGN_CENTER:
+//                     return (usableLength - cellDim * cellAmount) / 2;
+//                 case ALIGN_RIGHT:
+//                     return usableLength - cellDim * cellAmount;
+//             }
+//         }
+
+//         unsigned short calcSquareCellDim(const unsigned int &width, const unsigned int &height, const unsigned short &columns, const unsigned short &rows, const unsigned short &gapWidth, const unsigned short &gapHeight) {
+//             unsigned short width = this->calcCellDim(width, columns, gapWidth);
+//             unsigned short height = this->calcCellDim(height, rows, gapHeight);
+//             return width < height ? width : height;
+//         }
+// };
+
+namespace blokus {
+    const unsigned short polyominoAmounts[6] = {21, 35, 108, 369, 1285, 4655};
+    const unsigned char polyominoTiles[6] = {0, 6, 7, 8, 9, 10};
+    const unsigned short polyominoTileTotals[6] = {89, 210, 756, 2952, 11565, 46550};
+
+    typedef std::size_t polyType;
+    typedef std::size_t polyominoType;
+    typedef enum {
+        POLYTYPE_BASE = 0,
+        POLYTYPE_HEXOMINO = 1,
+        POLYTYPE_HEPTOMINO = 2,
+        POLYTYPE_OCTOMINO = 3,
+        POLYTYPE_NONOMINO = 4,
+        POLYTYPE_DECOMINO = 5,
+        POLYTYPE_HEX = 1,
+        POLYTYPE_HEPT = 2,
+        POLYTYPE_OCT = 3,
+        POLYTYPE_NON = 4,
+        POLYTYPE_DEC = 5,
+        POLYTYPE_SENTINAL = -1
+    } polyominoTypes;
 
     std::vector<std::vector<std::vector<bool>>> readPolyominoFile(const char* filepath) {
         std::vector<std::vector<std::vector<bool>>> output;
         
         std::ifstream file;
         file.open(filepath, std::ios::in);
-        if (!file.is_open()) {return output;}
+        if (!file.is_open()) {
+            std::cout << "ERROR: Could not open file" << filepath << "\n";
+            return output;
+        }
 
         // Current line being processed from the file
         std::string line;
@@ -70,7 +121,7 @@ namespace blokus {
         const unsigned short count = std::stoi(line);
         
         // Place each polyomino into the array correctly
-        for (int i = 0; i < count; i++) {
+        for (unsigned short i = 0; i < count; i++) {
             output.emplace_back();
             std::getline(file, line);
 
@@ -112,6 +163,13 @@ namespace blokus {
 
         return output;
     }
+
+    std::vector<std::vector<std::vector<std::vector<bool>>>> rawPolyominoData = {
+        blokus::readPolyominoFile("dev/polyominoes/base.txt"),
+        blokus::readPolyominoFile("dev/polyominoes/hexominoes.txt"),
+        blokus::readPolyominoFile("dev/polyominoes/heptominoes.txt"),
+        blokus::readPolyominoFile("dev/polyominoes/octominoes.txt")
+    };
 }
 
-#endif /* BLOKUS_POLYOMINOES_hpp */
+#endif // BLOKUS_POLYOMINOES_hpp
