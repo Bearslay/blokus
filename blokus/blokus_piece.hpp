@@ -1,18 +1,12 @@
 #ifndef BLOKUS_PIECE_hpp
 #define BLOKUS_PIECE_hpp
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 #include <iostream>
 #include <vector>
 
 #include "btils.hpp"
-#include "bengine.hpp"
 
 #include "blokus_polyominoes.hpp"
-#include "blokus_player.hpp"
-#include "blokus_game.hpp"
 
 namespace blokus {
     typedef enum {
@@ -22,96 +16,144 @@ namespace blokus {
         MOVE_SOUTH
     } movementDirections;
 
-    class player;
-    class game;
-
+    /// @brief A Piece used for Blokus; contains grid, position, and misc data
     class piece {
         private:
-            Uint16 id = 0;
-            Uint8 tiles = 1;
+            /// @brief The id of the piece; relates directly to which grid was used from the raw polyomino data set
+            unsigned short id = 0;
+            /// @brief The amount of tiles that the piece takes up
+            unsigned char tiles = 0;
 
-            char x = 0;
-            char y = 0;
+            /// @brief The piece's x-position on the board related to the top-left corner of the piece's grid; can be negative when placed near the edge of the board
+            short x = 0;
+            /// @brief The piece's y-position on the board related to the top-left corner of the piece's grid; can be negative when placed near the edge of the board
+            short y = 0;
+            /// @brief The grid that contains the location of the tiles within the piece; can be rotated/flipped as needed
             std::vector<std::vector<bool>> grid = {};
 
         public:
-            piece(const Uint16 &id = 0) {
-                Uint16 maxId = blokus::AMT_BASE;
-                if (id < maxId) {
-                    this->grid = blokus::basePolyominoes.at(id);
-                    for (Uint8 i = 0; i < blokus::basePolyominoes.at(id).size(); i++) {
-                        for (Uint8 j = 0; j < blokus::basePolyominoes.at(id).size(); j++) {
-                            if (blokus::basePolyominoes.at(id).at(i).at(j)) {
+            /** Constructor
+             * @param id The id of the piece, related to which specific polyomino the piece shall be
+             */
+            piece(const unsigned short &id = 0) {
+                // The base set of polyominoes has a special way of determining the amount of tiles a given piece has, hence the seperation
+                if (id < blokus::polyominoAmounts[blokus::POLYTYPE_BASE]) {
+                    this->id = id;
+                    this->grid = blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id);
+                    for (unsigned char i = 0; i < blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).size(); i++) {
+                        for (unsigned char j = 0; j < blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).size(); j++) {
+                            if (blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).at(i).at(j)) {
                                 this->tiles++;
                             }
                         }
                     }
-                } else if (id < (maxId += blokus::AMT_HEXOMINO)) {
-                    this->grid = blokus::hexominoes.at(id);
-                    this->tiles = 6;
-                } else if (id < (maxId += blokus::AMT_HEPTOMINO)) {
-                    this->grid = blokus::heptominoes.at(id);
-                    this->tiles = 7;
-                } else if (id < (maxId += blokus::AMT_OCTOMINO)) {
-                    this->tiles = 8;
-                } else if (id < (maxId += blokus::AMT_NONOMINO)) {
-                    this->tiles = 9;
-                } else if (id < (maxId += blokus::AMT_DECOMINO)) {
-                    this->tiles = 10;
-                } else {
-                    this->grid = blokus::basePolyominoes.at(0);
-                    this->tiles = 1;
+                    return;
+                }
+
+                // Hyjacking the piece's id for use as a variable before assigning it its real value
+                this->id = blokus::polyominoAmounts[blokus::POLYTYPE_BASE];
+                // Any non-base piece's properties can be determined purely by its id so can be lumped together code-wise
+                for (blokus::polyominoType i = blokus::POLYTYPE_HEX; i <= blokus::POLYTYPE_OCT; i++) {
+                    if (id < this->id + blokus::polyominoAmounts[i]) {
+                        this->id = id;
+                        this->grid = blokus::rawPolyominoData.at(i).at(id - this->id);
+                        this->tiles = i + 5;
+                        return;
+                    }
+                    this->id += blokus::polyominoAmounts[i];
+                }
+
+                // Default case for a piece given a bad id
+                this->id = 0;
+                this->grid = blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(0);
+                this->tiles = 1;
+            }
+
+            /// @brief Print the piece's grid to the standard iostream
+            void print() const {
+                std::cout << this->id << "\n";
+                for (unsigned char i = 0; i < this->grid.size(); i++) {
+                    for (unsigned char j = 0; j < this->grid.size(); j++) {
+                        std::cout << (this->grid.at(i).at(j) ? "██" : "░░");
+                    }
+                    std::cout << "\n";
                 }
             }
 
-            Uint16 getId() const {
+            /** Get the id of the piece
+             * @returns The id of the piece
+             */ 
+            unsigned short getId() const {
                 return this->id;
             }
-            Uint8 getTiles() const {
+            /** Get the amount of tiles the piece takes up
+             * @returns The amount of tiles the piece takes up
+             */
+            unsigned char getTiles() const {
                 return this->tiles;
             }
-            char getX() const {
+            /** Get the x-position of the piece
+             * @returns The x-position of the piece on the board in relation to the grid's top-left corner
+             */
+            short getX() const {
                 return this->x;
             }
-            char getY() const {
+            /** Get the y-position of the piece
+             * @returns The y-position of the piece on the board in relation to the grid's top-left corner
+             */
+            short getY() const {
                 return this->y;
             }
 
-            void rotate(const bool &ccw = true, const Uint8 &rotations = 1) {
+            /** Rotate the piece by 90 degrees an amount of times
+             * @param ccw Whether to rotate counter-clockwise (true) or clockwise (false)
+             * @param rotations The amount of times to rotate the piece
+             */
+            void rotate(const bool &ccw = true, const unsigned char &rotations = 1) {
                 for (char i = rotations % 4; i > 0; i--) {
                     this->grid = btils::rotateMatrix<bool>(this->grid, ccw);
                 }
             }
-            void flip(const bool &vertical = true, const Uint8 &flips = 1) {
+            /** Flip the piece an amount of times
+             * @param vertical Whether to flip the piece vertically (true) or horizontally (false)
+             * @param flips The amount of times to flip the piece
+             */
+            void flip(const bool &vertical = true, const unsigned char &flips = 1) {
                 if (flips % 2 != 0) {
                     this->grid = btils::flipMatrix<bool>(this->grid, vertical);
                 }
             }
-            void move(const Uint8 &direction) {
+            /** Move the piece one tile in a direction
+             * @param direction Which direction to move the piece (it's best to use the movementDirections enum)
+             */
+            void move(const unsigned char &direction) {
                 switch (direction) {
                     default:
                     case blokus::MOVE_EAST:
                         x++;
-                        break;
+                        return;
                     case blokus::MOVE_NORTH:
                         y++;
-                        break;
+                        return;
                     case blokus::MOVE_WEST:
                         x--;
-                        break;
+                        return;
                     case blokus::MOVE_SOUTH:
                         y--;
-                        break;
+                        return;
                 }
             }
-            void fixPos(const short &boardSize) {
+            /** Return the piece to an in-bounds position in the case that one of its tiles clips out of bounds
+             * @param boardSize The dimensions of the board in tiles
+             */
+            void fixPos(const unsigned char &boardSize) {
                 bool ok = false, error = false;
 
                 while (!ok) {
                     ok = true;
 
-                    for (Uint8 i = 0; i < this->grid.size(); i++) {
-                        for (Uint8 j = 0; j < this->grid.size(); j++) {
+                    for (unsigned char i = 0; i < this->grid.size(); i++) {
+                        for (unsigned char j = 0; j < this->grid.size(); j++) {
                             if (this->x + i < 0 && this->grid.at(j).at(i)) {
                                 this->x++;
                                 error = true;
@@ -138,25 +180,7 @@ namespace blokus {
                     }
                 }
             }
-
-            std::vector<std::vector<bool>> enlarge(const Uint8 &increase = 1) {
-                std::vector<std::vector<bool>> output = this->grid;
-
-                for (Uint8 i = 0; i < increase; i++) {
-                    const Uint8 size = this->grid[0].size();
-
-                    this->grid.emplace(this->grid.begin() + ((size % 2 == 0) ? 0 : size));
-
-                    for (Uint8 j = 0; j < size + 1; j++) {
-                        this->grid[(size % 2 == 0) ? 0 : size].emplace_back(false);
-                    }
-                    for (Uint8 j = ((size % 2 == 0) ? 1 : 0); j < size + ((size % 2 == 0) ? 1 : 0); j++) {
-                        this->grid[j].emplace(this->grid[j].begin() + ((size % 2 == 0) ? 0 : size), false);
-                    }
-                }
-                return output;
-            }
     };
 }
 
-#endif /* BLOKUS_PIECE_hpp */
+#endif // BLOKUS_PIECE_hpp
