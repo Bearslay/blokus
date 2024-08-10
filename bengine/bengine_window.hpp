@@ -303,6 +303,13 @@ namespace bengine {
                 return btils::adj<Uint16>(this->baseHeight, height);
             }
 
+            void setGraphicalStretching(const bool &stretchGraphics) {
+                this->stretchGraphics = stretchGraphics;
+            }
+            void toggleGraphicalStretching() {
+                this->stretchGraphics = !this->stretchGraphics;
+            }
+
             Uint16 getHalfWidth() const {
                 return this->halfWidth;
             }
@@ -405,13 +412,13 @@ namespace bengine {
                 
                 if (this->stretchGraphics) {
                     const SDL_Rect dst = {x, y, w, h};
-                    if (SDL_RenderFillRect(this->renderer, &dst) != 0) {
+                    if (SDL_RenderDrawRect(this->renderer, &dst) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to draw a rectangle";
                         bengine::window::printError();
                     }
                 } else {
                     const SDL_Rect dst = {bengine::window::stretchX(x), bengine::window::stretchY(y), bengine::window::stretchX(w), bengine::window::stretchY(h)};
-                    if (SDL_RenderFillRect(this->renderer, &dst) != 0) {
+                    if (SDL_RenderDrawRect(this->renderer, &dst) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to draw a rectangle";
                         bengine::window::printError();
                     }
@@ -471,6 +478,57 @@ namespace bengine {
                     if (SDL_RenderFillRect(this->renderer, &dst) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to fill a rectangle";
                         bengine::window::printError();
+                    }
+                }
+            }
+            void drawCircle(const int &x, const int &y, const int &r, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
+                SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
+                const int diameter = r * 2;
+                int ox = r - 1;
+                int oy = 0;
+                int tx = 1;
+                int ty = 1;
+                int error = tx - diameter;
+                while (ox >= oy) {
+                    SDL_RenderDrawPoint(this->renderer, x + ox, y - oy);
+                    SDL_RenderDrawPoint(this->renderer, x + ox, y + oy);
+                    SDL_RenderDrawPoint(this->renderer, x - ox, y - oy);
+                    SDL_RenderDrawPoint(this->renderer, x - ox, y + oy);
+                    SDL_RenderDrawPoint(this->renderer, x + oy, y - ox);
+                    SDL_RenderDrawPoint(this->renderer, x + oy, y + ox);
+                    SDL_RenderDrawPoint(this->renderer, x - oy, y - ox);
+                    SDL_RenderDrawPoint(this->renderer, x - oy, y + ox);
+                    if (error <= 0) {
+                        oy++;
+                        error += ty;
+                        ty += 2;
+                    } else if (error > 0) {
+                        ox--;
+                        tx += 2;
+                        error += tx - diameter;
+                    }
+                }
+            }
+            void fillCircle(const int &x, const int &y, const int &r, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
+                SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
+                int ox = 0;
+                int oy = r;
+                int error = r - 1;
+                while (oy >= ox) {
+                    SDL_RenderDrawLine(this->renderer, x - oy, y + ox, x + oy, y + ox);
+                    SDL_RenderDrawLine(this->renderer, x - ox, y + oy, x + ox, y + oy);
+                    SDL_RenderDrawLine(this->renderer, x - ox, y - oy, x + ox, y - oy);
+                    SDL_RenderDrawLine(this->renderer, x - oy, y - ox, x + oy, y - ox);
+                    if (error >= ox * 2) {
+                        error -= ox * 2 + 1;
+                        ox++;
+                    } else if (error < 2 * (r - oy)) {
+                        error += oy * 2 - 1;
+                        oy--;
+                    } else {
+                        error += 2 * (oy - ox - 1);
+                        oy--;
+                        ox++;
                     }
                 }
             }
