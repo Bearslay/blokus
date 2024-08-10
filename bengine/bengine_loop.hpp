@@ -43,6 +43,8 @@ namespace bengine {
                 this->window.setFlags(flags);
                 this->window.setBaseWidth(width);
                 this->window.setBaseHeight(height);
+
+                SDL_StopTextInput();
             }
             ~loop() {
                 TTF_Quit();
@@ -73,6 +75,7 @@ namespace bengine {
                                     break;
                                 case SDL_WINDOWEVENT:
                                     this->window.handleEvent(this->event.window);
+                                    this->visualsChanged = true;
                                     break;
                             }
                             this->handleEvent();
