@@ -14,14 +14,21 @@
 #include "blokus_piece.hpp"
 
 namespace blokus {
+    /// @brief The minimum amount of sets of a given polyomino type allowed in a game of Blokus
     const Uint8 polySetMins[6] = {1, 0, 0, 0, 0, 0};
+    /// @brief The maximum amount of sets of a given polyomino type allowed in a game of Blokus
     const Uint8 polySetMaxes[6] = {12, 4, 2, 1, 0, 0};
 
-    Uint8 processPolyominoSet(const polyType &polyominoSet, const Uint8 &value) {
-        if (polyominoSet > blokus::POLYTYPE_DEC) {
+    /** Take a desired amount of polyomino sets to use and confine that value to the mins/maxes allowed for that type
+     * @param type The type of polyomino being analyzed
+     * @param value The input for the amount of the given polyomino sets to uses
+     * @returns The amount of polyomino sets for the given polyType as bounded
+     */
+    Uint8 processPolyominoSet(const blokus::polyType &type, const Uint8 &value) {
+        if (type > blokus::POLYTYPE_DEC) {
             return 0;
         }
-        return value > blokus::polySetMaxes[polyominoSet] ? blokus::polySetMaxes[polyominoSet] : (value < blokus::polySetMins[polyominoSet] ? blokus::polySetMins[polyominoSet] : value);
+        return value > blokus::polySetMaxes[type] ? blokus::polySetMaxes[type] : (value < blokus::polySetMins[type] ? blokus::polySetMins[type] : value);
     }
 
     class player {
@@ -36,11 +43,11 @@ namespace blokus {
                 const Uint8 setValues[4] = {baseSets, hexSets, heptSets, octSets};
 
                 Uint16 idStart = 0;
-                for (polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_OCT; i++) {
+                for (blokus::polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_OCT; i++) {
                     this->pieces.emplace_back();
-                    for (Uint8 j = 0; j < processPolyominoSet(i, setValues[i]); j++) {
+                    for (Uint8 j = 0; j < setValues[i]; j++) {
                         for (Uint8 k = 0; k < blokus::polyominoAmounts[i]; k++) {
-                            this->pieces[i].emplace_back(blokus::piece(k));
+                            this->pieces[i].emplace_back(blokus::piece(idStart + k));
                         }
                     }
                     idStart += blokus::polyominoAmounts[i];
@@ -58,7 +65,7 @@ namespace blokus {
 
             Uint16 getRemainingPieces(const blokus::polyominoType &type) const {
                 if (type >= blokus::POLYTYPE_BASE && type <= blokus::POLYTYPE_OCT) {
-                    return (Uint16)this->pieces.at(type).size();;
+                    return (Uint16)this->pieces.at(type).size();
                 }
                 return this->getRemainingPieces(blokus::POLYTYPE_BASE) + this->getRemainingPieces(blokus::POLYTYPE_HEX) + this->getRemainingPieces(blokus::POLYTYPE_HEPT) + this->getRemainingPieces(blokus::POLYTYPE_OCT);
             }
