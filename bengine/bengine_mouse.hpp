@@ -324,10 +324,12 @@ namespace bengine {
             }
     };
 
-    class clickMatrix : public clickRectangle {
+    class clickMatrix : public bengine::clickRectangle {
         protected:
             Uint16 rows = 1;
             Uint16 cols = 1;
+            double rowHeight = 1;
+            double colWidth = 1;
         
         public:
             clickMatrix(const Uint16 x1 = 0, const Uint16 y1 = 0, const Uint16 x2 = 0, const Uint16 y2 = 0, const Uint16 &rows = 1, const Uint16 &cols = 1) : clickRectangle(x1, y1, x2, y2) {
@@ -349,6 +351,7 @@ namespace bengine {
                 } else {
                     this->rows = rows;
                 }
+                this->rowHeight = this->rows == 0 ? this->getH() : this->getH() / this->rows;
                 return output;
             }
             Uint16 setCols(const Uint16 &cols) {
@@ -358,6 +361,7 @@ namespace bengine {
                 } else {
                     this->cols = cols;
                 }
+                this->colWidth = this->cols == 0 ? this->getW() : this->getW() / this->cols;
                 return output;
             }
 
@@ -365,10 +369,41 @@ namespace bengine {
                 if (this->getW() == 0 || this->getH() == 0) {
                     return UINT32_MAX;
                 }
-                if (mouseState.posx() >= this->x1 && mouseState.posx() <= this->x2 && mouseState.posy() >= this->y1 && mouseState.posy() <= this->y2) {
-                    return (mouseState.posy() == this->y2 ? this->rows - 1 : (mouseState.posy() - this->y1) / (this->getH() / this->rows)) * this->cols + (mouseState.posx() == this->x2 ? this->cols - 1 : (mouseState.posx() - this->x1) / (this->getW() / this->cols));
+                if (mouseState.posx() < this->x1 || mouseState.posx() > this->x2 || mouseState.posy() < this->y1 || mouseState.posy() > this->y2) {
+                    return UINT32_MAX;
                 }
-                return UINT32_MAX;
+                Uint16 posx = mouseState.posx() - this->x1;
+                Uint16 posy = mouseState.posy() - this->y1;
+
+                // Uint16 col = (mouseState.posx() == this->x2 ? this->cols - 1 : std::round(posx / this->colWidth));
+                // Uint16 row = (mouseState.posy() == this->y2 ? this->rows - 1 : std::round(posy / this->rowHeight));
+
+                Uint16 col = posx / this->colWidth;
+                Uint16 row = posy / this->rowHeight;
+
+                Uint16 tlc = std::abs(posx - this->colWidth * col - 1);
+                Uint16 trc = std::abs(posx - this->colWidth * col);
+                Uint16 blc = std::abs(posx - this->colWidth * col - 1);
+                Uint16 brc = std::abs(posx - this->colWidth * col);
+                
+                Uint16 tlr = std::abs(posy - this->rowHeight * row - 1);
+                Uint16 trr = std::abs(posy - this->rowHeight * row - 1);
+                Uint16 blr = std::abs(posy - this->rowHeight * row);
+                Uint16 brr = std::abs(posy - this->rowHeight * row);
+
+                if ((tlc < trc && tlc < blc && tlc < brc) || (blc < tlc && blc < trc && blc < brc)) {
+                    col--;
+                }
+                if ((tlr < trr && tlr < blr && tlr < brr) || (blr < tlr && blr < trr && blr < brr)) {
+                    row--;
+                }
+
+                if (col >= this->cols) {
+                    col = this->cols - 1;
+                }
+                
+                const Uint32 pos = row * this->cols + col;
+                return pos < this->cols * this->rows ? pos : UINT32_MAX;
             }
             Uint32 checkButton(const normalMouseState &mouseState, const Uint8 &button) const {
                 const Uint32 pos = this->checkPos(mouseState);
