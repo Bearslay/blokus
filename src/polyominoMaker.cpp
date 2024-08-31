@@ -9,20 +9,25 @@
 class polymaker : public bengine::loop {
     private:
         bengine::normalMouseState mstate;
-        std::vector<std::vector<bool>> grid;
+        std::vector<std::vector<char>> grid;
         Uint32 gridPos = UINT32_MAX;
         Uint32 oldGridPos = UINT32_MAX;
+
+        bengine::basicTexture piecesOutline = bengine::basicTexture(this->window.loadTexture("dev/png/tilesets/piece_edges_sheet.png"), {0, 0, 256, 256});
+        bengine::moddedTexture piecesBase = bengine::moddedTexture(this->window.loadTexture("dev/png/tilesets/piece_bases_sheet.png"), {0, 0, 256, 256}, {255, 0, 0, 255});
 
         bengine::clickRectangle printButton = bengine::clickRectangle(20, 520, 220, 600);
         bengine::clickRectangle clearButton = bengine::clickRectangle(240, 520, 440, 600);
         bengine::clickMatrix gridButton;
+
+        bengine::autotiler tiler;
 
         TTF_Font *font = TTF_OpenFont("dev/fonts/GNU-Unifont.ttf", 48);
 
         void printGrid() {
             for (Uint8 i = 0; i < this->grid.size(); i++) {
                 for (Uint8 j = 0; j < this->grid.size(); j++) {
-                    std::cout << this->grid.at(i).at(j);
+                    std::cout << (this->grid.at(i).at(j) >= 0);
                 }
                 std::cout << "\n";
             }
@@ -32,7 +37,7 @@ class polymaker : public bengine::loop {
         void clearGrid() {
             for (Uint8 i = 0; i < this->grid.size(); i++) {
                 for (Uint8 j = 0; j < this->grid.size(); j++) {
-                    this->grid[i][j] = false;
+                    this->grid[i][j] = -1;
                 }
             }
         }
@@ -45,7 +50,7 @@ class polymaker : public bengine::loop {
                     this->gridPos = this->gridButton.checkPos(this->mstate);
                     if (this->gridPos != this->oldGridPos && this->mstate.pressed(bengine::MOUSE1)) {
                         if (this->gridPos < this->grid.size() * this->grid.size()) {
-                            this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()] = !this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()];
+                            tiler.fourBit(this->grid, this->gridPos % this->grid.size(), this->gridPos / this->grid.size(), this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()] < 0);
                             this->visualsChanged = true;
                         }
                     }
@@ -59,7 +64,7 @@ class polymaker : public bengine::loop {
                         this->visualsChanged = true;
                     } else {
                         if (this->gridPos != UINT32_MAX && this->gridPos < this->grid.size() * this->grid.size()) {
-                            this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()] = !this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()];
+                            tiler.fourBit(this->grid, this->gridPos % this->grid.size(), this->gridPos / this->grid.size(), this->grid[this->gridPos / this->grid.size()][this->gridPos % this->grid.size()] < 0);
                             this->visualsChanged = true;
                         }
                     }
@@ -91,12 +96,18 @@ class polymaker : public bengine::loop {
             const Uint16 cellSize = 480 / this->grid.size();
             for (Uint8 i = 0; i < this->grid.size(); i++) {
                 for (Uint8 j = 0; j < this->grid.size(); j++) {
-                    this->window.fillRectangle(j * cellSize, i * cellSize, cellSize, cellSize, this->grid.at(i).at(j) ? bengine::colors[bengine::COLOR_WHITE] : bengine::colors[bengine::COLOR_LIGHT_GRAY]);
-                    this->window.drawRectangle(j * cellSize, i * cellSize, cellSize, cellSize, bengine::colors[bengine::COLOR_BLACK]);
+                    this->window.drawRectangle(j * cellSize, i * cellSize, cellSize, cellSize, bengine::colors[bengine::COLOR_WHITE]);
+                    if (this->grid.at(i).at(j) < 0) {
+                        continue;
+                    }
+                    this->piecesBase.setFrame({this->grid.at(i).at(j) % 4 * 64, this->grid.at(i).at(j) / 4 * 64, 64, 64});
+                    this->piecesOutline.setFrame({this->grid.at(i).at(j) % 4 * 64, this->grid.at(i).at(j) / 4 * 64, 64, 64});
+                    this->window.renderModdedTexture(this->piecesBase, {j * cellSize, i * cellSize, cellSize, cellSize});
+                    this->window.renderBasicTexture(this->piecesOutline, {j * cellSize, i * cellSize, cellSize, cellSize});
                 }
             }
         }
-    
+
     public:
         polymaker(const Uint8 &dimensions) : bengine::loop("Polyomino Maker", 480, 640, SDL_WINDOW_SHOWN) {
             // 30 fps
@@ -108,7 +119,7 @@ class polymaker : public bengine::loop {
             for (Uint8 i = 0; i < dimensions; i++) {
                 this->grid.emplace_back();
                 for (Uint8 j = 0; j < dimensions; j++) {
-                    this->grid[i].emplace_back(false);
+                    this->grid[i].emplace_back(-1);
                 }
             }
 
