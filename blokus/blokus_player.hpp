@@ -103,4 +103,4 @@ namespace blokus {
     };
 }
 
-#endif /* BLOKUS_PLAYER_hpp */
+#endif // BLOKUS_PLAYER_hpp

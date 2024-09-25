@@ -6,4 +6,4 @@
 #include "blokus_player.hpp"
 #include "blokus_game.hpp"
 
-#endif /* BLOKUS_hpp */
+#endif // BLOKUS_hpp

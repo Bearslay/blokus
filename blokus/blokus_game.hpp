@@ -62,7 +62,7 @@ namespace blokus {
                 }
             }
 
-            void handleEvent() {
+            void handleEvent() override {
                 Uint32 gridpos;
                 switch (this->event.type) {
                     case SDL_MOUSEMOTION:
@@ -115,7 +115,9 @@ namespace blokus {
                 }
             }
 
-            void compute() {}
+            void compute() override {
+                this->mstate.stopMotion();
+            }
 
             void renderPlayer(const Uint8 &id) {
                 const Uint16 xpos = 20;
@@ -123,19 +125,19 @@ namespace blokus {
                 const char16_t* setTitles[6] = {u"Base:        ", u"Hexominoes:  ", u"Heptominoes: ", u"Octominoes:  ", u"Nonominoes:  ", u"Decominoes:  "};
 
                 this->window.renderBasicTexture(this->texture_playerframe_small, {xpos, ypos, 800, 260});
-                this->window.renderText(this->font_general, (u"Player " + btils::to_u16string<Uint8>(id + 1) + u" - " + this->players.at(id).getName()).c_str(), {xpos + 12, ypos + 10}, 0, bengine::colors[bengine::COLOR_WHITE]);
+                this->window.renderText(this->font_general, (u"Player " + btils::to_u16string<Uint8>(id + 1) + u" - " + this->players.at(id).getName()).c_str(), xpos + 12, ypos + 10, 0, bengine::colors[bengine::COLOR_WHITE]);
             
-                this->window.renderText(this->font_general, (u"Tiles Left: " + btils::to_u16string(btils::tstr_AddZeros<Uint16>(this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL), 4, 0) + "/" + btils::tstr_AddZeros<Uint16>(this->maxTiles(), 4, 0) + " (" + btils::tstr_AddZeros<Uint16>((this->maxTiles() - this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL)) / this->maxTiles() * 100, 3, 0) + "%)")).c_str(), {xpos + 12, ypos + 50}, 0, bengine::colors[bengine::COLOR_WHITE]);
+                this->window.renderText(this->font_general, (u"Tiles Left: " + btils::to_u16string(btils::tstr_AddZeros<Uint16>(this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL), 4, 0) + "/" + btils::tstr_AddZeros<Uint16>(this->maxTiles(), 4, 0) + " (" + btils::tstr_AddZeros<Uint16>((this->maxTiles() - this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL)) / this->maxTiles() * 100, 3, 0) + "%)")).c_str(), xpos + 12, ypos + 50, 0, bengine::colors[bengine::COLOR_WHITE]);
                 for (polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_OCT; i++) {
                     if (this->pieceSets[i] > 0) {
-                        this->window.renderText(this->font_general, (setTitles[i] + btils::to_u16string(btils::tstr_AddZeros<Uint16>(this->players.at(id).getRemainingPieces(i), 3, 0) + "/" + btils::tstr_AddZeros<Uint16>(this->pieceSets[i] * blokus::polyominoAmounts[i], 3, 0) + "  (" + btils::tstr_AddZeros<Uint16>((this->pieceSets[i] * blokus::polyominoAmounts[i] - this->players.at(id).getRemainingPieces(i)) / (this->pieceSets[i] * blokus::polyominoAmounts[i]) * 100, 3, 0) + "%)")).c_str(), {xpos + 12, ypos + 92 + 36 * (int)i}, 0, bengine::colors[bengine::COLOR_WHITE]);
+                        this->window.renderText(this->font_general, (setTitles[i] + btils::to_u16string(btils::tstr_AddZeros<Uint16>(this->players.at(id).getRemainingPieces(i), 3, 0) + "/" + btils::tstr_AddZeros<Uint16>(this->pieceSets[i] * blokus::polyominoAmounts[i], 3, 0) + "  (" + btils::tstr_AddZeros<Uint16>((this->pieceSets[i] * blokus::polyominoAmounts[i] - this->players.at(id).getRemainingPieces(i)) / (this->pieceSets[i] * blokus::polyominoAmounts[i]) * 100, 3, 0) + "%)")).c_str(), xpos + 12, ypos + 92 + 36 * (int)i, 0, bengine::colors[bengine::COLOR_WHITE]);
                     }
                 }
                 this->window.renderBasicTexture(this->texture_shaded_frame, {xpos + 559, ypos + 53, 192, 192});
             }
             void renderPiecePreview(const Uint8 &id) {
                 this->window.renderBasicTexture(this->texture_playerframe_large, {20, 8, 800, 1064});
-                this->window.renderText(this->font_general, (u"Player " + btils::to_u16string<Uint8>(id + 1) + u" - " + this->players.at(id).getName()).c_str(), {32, 18}, 0, bengine::colors[bengine::COLOR_WHITE]);
+                this->window.renderText(this->font_general, (u"Player " + btils::to_u16string<Uint8>(id + 1) + u" - " + this->players.at(id).getName()).c_str(), 32, 18, 0, bengine::colors[bengine::COLOR_WHITE]);
 
                 for (Uint8 i = 0; i < this->piecesPreview.getRows(); i++) {
                     for (Uint8 j = 0; j < this->piecesPreview.getCols(); j++) {
@@ -146,7 +148,7 @@ namespace blokus {
 
             void updateBoardTexture() {
                 this->window.targetDummy();
-                this->window.initCanvas(this->board.size() * 64, this->board.size() * 64);
+                this->window.initDummy(this->board.size() * 64, this->board.size() * 64);
                 this->window.clear();
 
                 this->window.renderBasicTexture(this->texture_background, {0, 0, (int)this->board.size() * 64, (int)this->board.size() * 64});
@@ -160,11 +162,11 @@ namespace blokus {
                     }
                 }
                 this->window.present();
-                this->texture_grid.setTexture(this->window.copyCanvas());
+                this->texture_grid.setTexture(this->window.copyDummy());
                 this->window.targetWindow();
                 this->window.clear();
             }
-            void render() {
+            void render() override {
                 this->window.renderBasicTexture(this->texture_background, {0, 0, this->window.getWidth(), this->window.getHeight()});
                 this->window.renderBasicTexture(this->texture_boardframe, {848, 8, 1064, 1064});
                 this->window.renderBasicTexture(this->texture_grid, {867, 27, 1026, 1026});
@@ -215,8 +217,8 @@ namespace blokus {
 
                 // Grid setup; includes initializing the board itself as well as the grid's initial texture of empty cells
                 this->window.targetDummy();
-                this->window.initCanvas(size * 64, size * 64);
-                
+                this->window.initDummy(size * 64, size * 64);
+
                 this->window.clear();
                 this->window.renderBasicTexture(this->texture_background, {0, 0, size * 64, size * 64});
                 for (Uint8 i = 0; i < size; i++) {
@@ -233,7 +235,7 @@ namespace blokus {
                     }
                 }
                 this->window.present();
-                this->texture_grid.setTexture(this->window.copyCanvas());
+                this->texture_grid.setTexture(this->window.copyDummy());
                 this->window.targetWindow();
                 this->window.clear();
 
@@ -249,4 +251,4 @@ namespace blokus {
     };
 }
 
-#endif /* BLOKUS_GAME_hpp */
+#endif // BLOKUS_GAME_hpp
