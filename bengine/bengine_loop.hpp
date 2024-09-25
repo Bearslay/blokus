@@ -9,23 +9,42 @@
 #include "bengine_window.hpp"
 
 namespace bengine {
+    /// @brief A virtual class used to contain the basic looping mechanism required to seperate rendering/computing while maintaining consistent computational behavior
     class loop {
         protected:
+            /// @brief How long the loop has been active (seconds)
             long double time = 0.0;
+            /// @brief How long each computation frame should take (in seconds)
             double deltaTime = 0.01;
 
+            /// @brief Whether the loop is running or not
             bool loopRunning = true;
+            /// @brief Whether the renderer needs to update the visuals or not (saves on performance when nothing visual is happening)
             bool visualsChanged = true;
 
+            /// @brief The window that is interacted with and displays everything
             bengine::window window = bengine::window("window", 1280, 720, SDL_WINDOW_SHOWN);
+            /// @brief The SDL_Event structure used to process events
             SDL_Event event;
+            /// @brief The state of the keyboard; good for instantaneous feedback on which keys are pressed and which aren't
             const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 
+            /// @brief A virtual function that will be called whenever there is an event that needs to be addressed
             virtual void handleEvent() = 0;
+            /// @brief A virtual function that will be called each computation frame to handle any non-rendering-related tasks
             virtual void compute() = 0;
+            /// @brief A virtual function that will be called each rendering frame to handle all of the rendering-related tasks
             virtual void render() = 0;
 
         public:
+            /** bengine::loop constructor; mainly creates the window that will be used
+             * @param title The title of the window being created
+             * @param width The width of the window being created
+             * @param height The height of the window being created
+             * @param flags SDL2 flags to create the window with
+             * @param imageInitFlags SDL2 image flags to initialize SDL_image with (-1 to not initialize)
+             * @param useTTF Whether to initialize SDL_ttf or not
+             */
             loop(const char* title = "window", const Uint16 &width = 1920, const Uint16 &height = 1080, const Uint32 &flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE, const int &imageInitFlags = IMG_INIT_PNG, const bool &useTTF = true) {
                 if (SDL_Init(SDL_INIT_VIDEO) < 0) {
                     std::cout << "Error initializing SDL2\nERROR: " << SDL_GetError() << "\n";
@@ -46,12 +65,16 @@ namespace bengine {
 
                 SDL_StopTextInput();
             }
+            /// @brief bengine::loop deconstructor; pretty much just handles some SDL cleanup
             ~loop() {
                 TTF_Quit();
                 IMG_Quit();
                 SDL_Quit();
             }
 
+            /** The main function that handles the looping behavior and virtual function calling
+             * @returns 0 (anything additional hasn't been added yet)
+             */
             int run() {
                 Uint32 startTicks = 0;
                 Uint32 frameTicks = 0;
@@ -103,4 +126,4 @@ namespace bengine {
     };
 }
 
-#endif /* BENGINE_MAINLOOP_hpp */
+#endif // BENGINE_MAINLOOP_hpp

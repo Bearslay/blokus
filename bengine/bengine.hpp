@@ -7,4 +7,4 @@
 #include "bengine_loop.hpp"
 #include "bengine_helpers.hpp"
 
-#endif /* BENGINE_hpp */
+#endif // BENGINE_hpp

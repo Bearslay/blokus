@@ -6,15 +6,15 @@
 
 namespace bengine {
     typedef enum {
-        ALIGN_TOP_LFT = 0, // Top-Left
-        ALIGN_TOP_CTR = 1, // Top-Center
-        ALIGN_TOP_RHT = 2, // Top-Right
-        ALIGN_CTR_LFT = 3, // Center-Left
-        ALIGN_CTR_CTR = 4, // Center-Center
-        ALIGN_CTR_RHT = 5, // Center-Right
-        ALIGN_BTM_LFT = 6, // Bottom-Left
-        ALIGN_BTM_CTR = 7, // Bottom-Center
-        ALIGN_BTM_RHT = 8  // Bottom-Right
+        ALIGN_TOP_LFT = 0,    // Top-Left
+        ALIGN_TOP_CTR = 1,    // Top-Center
+        ALIGN_TOP_RHT = 2,    // Top-Right
+        ALIGN_CTR_LFT = 3,    // Center-Left
+        ALIGN_CTR_CTR = 4,    // Center-Center
+        ALIGN_CTR_RHT = 5,    // Center-Right
+        ALIGN_BTM_LFT = 6,    // Bottom-Left
+        ALIGN_BTM_CTR = 7,    // Bottom-Center
+        ALIGN_BTM_RHT = 8     // Bottom-Right
     } paddedGridAlignments;
 
     /// @brief A class to contain dimensional data relating to a grid of cells within a set zone; primarily used to calculate and store the size of said cells
@@ -84,7 +84,7 @@ namespace bengine {
             }
 
         public:
-            /** Constructor for the paddedGrid class
+            /** bengine::paddedGrid constructor
              * @param width The width of the zone that the grid will inhabit
              * @param height The height of the zone that the grid will inhabit
              * @param cols The amount of columns that the grid will have
@@ -97,6 +97,7 @@ namespace bengine {
                 this->alignment = alignment > ALIGN_BTM_RHT ? ALIGN_CTR_CTR : alignment;
                 this->update();
             }
+            /// @brief bengine::paddedGrid deconstructor
             ~paddedGrid() {}
 
             /** Get the alignment of the padded grid
@@ -277,17 +278,17 @@ namespace bengine {
             }
     };
 
+    /// @brief A class containing useful functions designed for 4/8-bit autotiling
     class autotiler {
         private:
+            /// @brief Key containing the 48 bitmasks relevant to eight-bit autotiling
             const static unsigned char key[48];
 
         public:
-            autotiler() {
-
-            }
-            ~autotiler() {
-
-            }
+            /// @brief bengine::autoTiler constructor
+            autotiler() {}
+            /// @brief bengine::autoTiler deconstructor
+            ~autotiler() {}
 
             /** Change a tile and update surrounding ones in a 4-bit autotiling grid
              * @param grid Grid of indexing values that dictate the source frame for the texture sheet
@@ -378,7 +379,8 @@ namespace bengine {
                 return grid.at(y).at(x);
             }
     };
+    /// @brief Key containing the 48 bitmasks relevant to eight-bit autotiling
     const unsigned char bengine::autotiler::key[48] = {2, 8, 10, 11, 16, 18, 22, 24, 26, 27, 30, 31, 64, 66, 72, 74, 75, 80, 82, 86, 88, 90, 91, 94, 95, 104, 106, 107, 120, 122, 123, 126, 127, 208, 210, 214, 216, 218, 219, 222, 223, 248, 250, 251, 254, 255};
 }
 
-#endif /* BENGINE_HELPERS_hpp */
+#endif // BENGINE_HELPERS_hpp
