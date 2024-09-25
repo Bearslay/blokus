@@ -7,4 +7,4 @@
 #include "btils_search.hpp"
 #include "btils_string.hpp"
 
-#endif /* BTILS_hpp */
+#endif // BTILS_hpp

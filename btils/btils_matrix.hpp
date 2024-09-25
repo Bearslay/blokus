@@ -7,7 +7,8 @@ namespace btils {
     /** Checks whether a 2D std::vector is rectangular or not
      * @tparam Type Any datatype/class (not relevant for this function)
      * @param input The 2D std::vector to check
-     * @returns Whether the input is rectangular (true) or jagged (false)    */
+     * @returns Whether the input is rectangular (true) or jagged (false)
+     */
     template <typename Type> bool isRectangular(const std::vector<std::vector<Type>> &input) {
         for (std::size_t i = 1; i < input.size(); i++) {
             if (input.at(0).size() != input.at(i).size()) {
@@ -22,7 +23,8 @@ namespace btils {
      * @param matrix The inputted 2D std::vector to be rotated
      * @param ccw Whether to rotate counter-clockwise or not
      * @param checkInput Whether to verify that the input is rectangular (not jagged) or not; helps prevent crashes at a small-ish performance cost
-     * @returns The inputted matrix, but rotated 90 degrees    */
+     * @returns The inputted matrix, but rotated 90 degrees
+     */
     template <typename Type> std::vector<std::vector<Type>> rotateMatrix(const std::vector<std::vector<Type>> &matrix, const bool &ccw = true, const bool &checkInput = false) {
         if (checkInput && btils::isRectangular(matrix)) {return matrix;}
         std::vector<std::vector<Type>> output;
@@ -51,7 +53,8 @@ namespace btils {
      * @param matrix The inputted 2D std::vector to be flipped
      * @param ccw Whether to flip vertically (true) or horizontally (false)
      * @param checkInput Whether to verify that the input is rectangular (not jagged) or not; helps prevent crashes at a small-ish performance cost
-     * @returns The inputted matrix, but flipped    */
+     * @returns The inputted matrix, but flipped
+     */
     template <typename Type> std::vector<std::vector<Type>> flipMatrix(const std::vector<std::vector<Type>> &matrix, const bool &vertical = true, const bool &checkInput = false) {
         if (checkInput && btils::isRectangular(matrix)) {return matrix;}
         std::vector<std::vector<Type>> output;
@@ -76,4 +79,4 @@ namespace btils {
     }
 }
 
-#endif /* BTILS_MATRIX_hpp */
+#endif // BTILS_MATRIX_hpp

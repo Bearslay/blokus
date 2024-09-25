@@ -11,7 +11,8 @@ namespace btils {
      * @param target The element being targetted
      * @param lowerBounds The lowest index within the list to search from (can be used to search a particular section of a larger list)
      * @param upperBounds the highest index within the list to search to (can be used to search a particular section of a larger list)
-     * @returns An std::optional object that either contains the index of the target element if found, or will be an std::nullopt if the target is not present in the list    */
+     * @returns An std::optional object that either contains the index of the target element if found, or will be an std::nullopt if the target is not present in the list
+     */
     template <typename Type> std::optional<std::size_t> linearSearch(const std::vector<Type> &list, const Type &target, const std::size_t &lowerBounds = 0, const std::size_t &upperBounds = __UINT64_MAX__) {
         if (list.size() == 0) {return std::nullopt;}
 
@@ -29,7 +30,8 @@ namespace btils {
      * @param target The element being targetted
      * @param lowerBounds The lowest index within the list to search from (can be used to search a particular section of a larger list)
      * @param upperBounds the highest index within the list to search to (can be used to search a particular section of a larger list)
-     * @returns An std::optional object that either contains the index of the target element if found, or will be an std::nullopt if the target is not present in the list    */
+     * @returns An std::optional object that either contains the index of the target element if found, or will be an std::nullopt if the target is not present in the list
+     */
     template <typename Type> std::optional<std::size_t> binarySearch(const std::vector<Type> &list, const Type &target, const std::size_t &lowerBounds = 0, const std::size_t &upperBounds = __UINT64_MAX__) {
         if (list.size() == 0) {return std::nullopt;}
 
@@ -45,4 +47,4 @@ namespace btils {
     }
 }
 
-#endif /* BTILS_SEARCH_hpp */
+#endif // BTILS_SEARCH_hpp
