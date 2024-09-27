@@ -11,14 +11,22 @@ namespace bengine {
             /// @brief The source texture to use
             SDL_Texture *source = nullptr;
             /// @brief The portion of the source texture to actually display
-            SDL_Rect frame = {};
+            SDL_Rect *frame = nullptr;
 
         public:
-            /** bengine::basicTexture constructor
+            /** bengine::basicTexture constructor; pointer-based
              * @param texture The SDL_Texture to use as a source
              * @param frame The portion of the source texture to actually display
              */
-            basicTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame = {}) {
+            basicTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL) {
+                bengine::basicTexture::setTexture(texture);
+                bengine::basicTexture::setFrame(frame);
+            }
+            /** bengine::basicTexture constructor; reference-based
+             * @param texture The SDL_Texture to use as a source
+             * @param frame The portion of the source texture to actually display
+             */
+            basicTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame) {
                 bengine::basicTexture::setTexture(texture);
                 bengine::basicTexture::setFrame(frame);
             }
@@ -54,19 +62,31 @@ namespace bengine {
             /** Get the frame of the texture
              * @returns An SDL_Rect with the frame (NULL = entire texture)
              */
-            SDL_Rect getFrame() const {
+            SDL_Rect *getFrame() const {
                 return this->frame;
             }
-            /** Set the frame of the texture
+            /** Set the frame of the texture; pointer-based
              * @param frame The new frame (NULL = entire texture)
              * @returns The old frame (NULL = entire texture)
              */
-            SDL_Rect setFrame(const SDL_Rect &frame) {
-                const SDL_Rect output = this->frame;
-                this->frame.x = frame.x;
-                this->frame.y = frame.y;
-                this->frame.w = frame.w;
-                this->frame.h = frame.h;
+            SDL_Rect *setFrame(SDL_Rect *frame) {
+                SDL_Rect *output = this->frame;
+                this->frame->x = frame->x;
+                this->frame->y = frame->y;
+                this->frame->w = frame->w;
+                this->frame->h = frame->h;
+                return output;
+            }
+            /** Set the frame of the texture; reference-based
+             * @param frame The new frame
+             * @returns The old frame (NULL = entire texture)
+             */
+            SDL_Rect *setFrame(const SDL_Rect &frame) {
+                SDL_Rect *output = this->frame;
+                this->frame->x = frame.x;
+                this->frame->y = frame.y;
+                this->frame->w = frame.w;
+                this->frame->h = frame.h;
                 return output;
             }
     };
@@ -80,12 +100,22 @@ namespace bengine {
             SDL_Color colorMod = {255, 255, 255, 255};
 
         public:
-            /** bengine::moddedTexture constructor
+            /** bengine::moddedTexture constructor; pointer-based
              * @param texture The SDL_Texture to use as a source
              * @param frame The portion of the source texture to actually display
              * @param colorMod The color modification for the texture
              */
-            moddedTexture(SDL_Texture *texture = nullptr, const SDL_Rect &frame = {}, const SDL_Color &colorMod = {255, 255, 255, 255}) {
+            moddedTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, const SDL_Color &colorMod = {255, 255, 255, 255}) {
+                bengine::basicTexture::setTexture(texture);
+                bengine::basicTexture::setFrame(frame);
+                bengine::moddedTexture::setColorMod(colorMod);
+            }
+            /** bengine::moddedTexture constructor; reference-based
+             * @param texture The SDL_Texture to use as a source
+             * @param frame The portion of the source texture to actually display
+             * @param colorMod The color modification for the texture
+             */
+            moddedTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame, const SDL_Color &colorMod = {255, 255, 255, 255}) {
                 bengine::basicTexture::setTexture(texture);
                 bengine::basicTexture::setFrame(frame);
                 bengine::moddedTexture::setColorMod(colorMod);
@@ -222,21 +252,35 @@ namespace bengine {
     class shiftingTexture : public moddedTexture {
         protected:
             /// @brief The point that the texture rotates about relative to the source frame's top-left corner
-            SDL_Point pivot = {};
+            SDL_Point *pivot = nullptr;
             /// @brief The angle that the texture is rotated at (in degrees)
             double angle = 0;
             /// @brief How the texture is flipped (SDL_FLIP_NONE, SDL_FLIP_HORIZONTAL, and SDL_FLIP_VERTICAL OR'd together)
             SDL_RendererFlip flip = SDL_FLIP_NONE;
 
         public:
-            /** bengine::shiftingTexture constructor
+            /** bengine::shiftingTexture constructor; pointer-based
              * @param texture The SDL_Texture to use as a source
              * @param frame The portion of the source texture to actually display
              * @param pivot The point for the texture to be rotated about relative to the source frame's top-left corner
              * @param angle The angle for the texture to be rotated at
              * @param colorMod The color modification for the texture
              */
-            shiftingTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame = {}, const SDL_Point &pivot = {}, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) {
+            shiftingTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, SDL_Point *pivot = NULL, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) {
+                bengine::basicTexture::setTexture(texture);
+                bengine::basicTexture::setFrame(frame);
+                bengine::moddedTexture::setColorMod(colorMod);
+                bengine::shiftingTexture::setPivot(pivot);
+                bengine::shiftingTexture::setAngle(angle);
+            }
+            /** bengine::shiftingTexture constructor; reference-based
+             * @param texture The SDL_Texture to use as a source
+             * @param frame The portion of the source texture to actually display
+             * @param pivot The point for the texture to be rotated about relative to the source frame's top-left corner
+             * @param angle The angle for the texture to be rotated at
+             * @param colorMod The color modification for the texture
+             */
+            shiftingTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame, const SDL_Point &pivot, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) {
                 bengine::basicTexture::setTexture(texture);
                 bengine::basicTexture::setFrame(frame);
                 bengine::moddedTexture::setColorMod(colorMod);
@@ -264,17 +308,27 @@ namespace bengine {
             /** Get the point for the texture to rotate about relative to the source frame's top-left corner
              * @returns The point for the texture to rotate about relative to the source frame's top-left corner
              */
-            SDL_Point getPivot() const {
+            SDL_Point *getPivot() const {
                 return this->pivot;
             }
-            /** Set the point for the texture to rotate about relative to the source frame's top-left corner
+            /** Set the point for the texture to rotate about relative to the source frame's top-left corner; pointer-based
              * @param pivot The new point for the texture to rotate about relative to the source frame's top-left corner
              * @returns The old point for the texture to rotate about relative to the source frame's top-left corner
              */
-            SDL_Point setPivot(const SDL_Point &pivot) {
-                const SDL_Point output = this->pivot;
-                this->pivot.x = pivot.x;
-                this->pivot.y = pivot.y;
+            SDL_Point *setPivot(SDL_Point *pivot) {
+                SDL_Point *output = this->pivot;
+                this->pivot->x = pivot->x;
+                this->pivot->y = pivot->y;
+                return output;
+            }
+            /** Set the point for the texture to rotate about relative to the source frame's top-left corner; reference-based
+             * @param pivot The new point for the texture to rotate about relative to the source frame's top-left corner
+             * @returns The old point for the texture to rotate about relative to the source frame's top-left corner
+             */
+            SDL_Point *setPivot(const SDL_Point &pivot) {
+                SDL_Point *output = this->pivot;
+                this->pivot->x = pivot.x;
+                this->pivot->y = pivot.y;
                 return output;
             }
 
