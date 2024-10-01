@@ -841,221 +841,146 @@ namespace bengine {
              * @param src The portion of the SDL_Texture to copy and render (px for all 4 metrics)
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics) (will stretch the texture to fill the given rectangle)
              */
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dst) {
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopy(this->renderer, texture, src, &destination) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopy(this->renderer, texture, &src, &destination) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopy(this->renderer, texture, src, dst) != 0) {
+                if (SDL_RenderCopy(this->renderer, texture, &src, &dst) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                     bengine::window::printError();
                 }
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst) {
-                SDL_Rect source = src;
-                this->renderSDLTexture(texture, &source, dst);
-            }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst) {
-                SDL_Rect destination = dst;
-                this->renderSDLTexture(texture, src, &destination);
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
-                SDL_Rect source = src, destination = dst;
-                this->renderSDLTexture(texture, &source, &destination);
             }
             /** Render an SDL_Texture while also applying rotations/reflections
              * @param texture The SDL_Texture to render
              * @param src The portion of the SDL_Texture to copy and render (px for all 4 metrics) 
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics)  (will stretch the texture to fill the given rectangle)
              * @param angle The angle to rotate the texture (degrees)
-             * @param pivot The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
+             * @param center The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
              * @param flip How to flip the rectangle (SDL_FLIP_NONE, SDL_FLIP_HORIZONTAL, SDL_FLIP_VERTICAL can be OR'd together)
              */
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, const SDL_Point &center, const SDL_RendererFlip &flip) {
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopyEx(this->renderer, texture, src, &destination, -angle, pivot, flip) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopyEx(this->renderer, texture, &src, &destination, -angle, &center, flip) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopyEx(this->renderer, texture, src, dst, -angle, pivot, flip) != 0) {
+                if (SDL_RenderCopyEx(this->renderer, texture, &src, &dst, -angle, &center, flip) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render SDL_Texture";
                     bengine::window::printError();
                 }
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src;
-                this->renderSDLTexture(texture, &source, dst, angle, pivot, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                this->renderSDLTexture(texture, src, &destination, angle, pivot, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src, destination = dst;
-                this->renderSDLTexture(texture, &source, &destination, angle, pivot, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dst, const double &angle, SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, src, dst, angle, &p, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src;
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, &source, dst, angle, &p, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, src, &destination, angle, &p, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src, destination = dst;
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, &source, &destination, angle, &p, flip);
             }
 
             /** Render a bengine::basicTexture
              * @param texture The bengine::basicTexture to render
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics)  (will stretch the texture to fill the given rectangle)
              */
-            void renderBasicTexture(const bengine::basicTexture &texture, SDL_Rect *dst) {
+            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst) {
+                const SDL_Rect frame = texture.getFrame();
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopy(this->renderer, texture.getTexture(), texture.getFrame(), &destination) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &destination) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopy(this->renderer, texture.getTexture(), texture.getFrame(), dst) != 0) {
+                if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &dst) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
                     bengine::window::printError();
                 }
-            }
-            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst) {
-                SDL_Rect destination = dst;
-                this->renderBasicTexture(texture, &destination);
             }
             /** Render a bengine::basicTexture while also applying rotations/reflections
              * @param texture The bengine::basicTexture to render
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics)  (will stretch the texture to fill the given rectangle)
              * @param angle The angle to rotate the texture (degrees)
-             * @param pivot The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
+             * @param center The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
              * @param flip How to flip the rectangle (SDL_FLIP_NONE, SDL_FLIP_HORIZONTAL, SDL_FLIP_VERTICAL can be OR'd together)
              */
-            void renderBasicTexture(const bengine::basicTexture &texture, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                const SDL_Rect frame = texture.getFrame();
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), &destination, -angle, pivot, flip) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &destination, -angle, &pivot, flip) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), dst, -angle, pivot, flip) != 0) {
+                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &dst, -angle, &pivot, flip) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
                     bengine::window::printError();
                 }
-            }
-            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                this->renderBasicTexture(texture, &destination, angle, pivot, flip);
-            }
-            void renderBasicTexture(const bengine::basicTexture &texture, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Point p = pivot;
-                this->renderBasicTexture(texture, dst, angle, &p, flip);
-            }
-            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                SDL_Point p = pivot;
-                this->renderBasicTexture(texture, &destination, angle, &p, flip);
             }
 
             /** Render a bengine::moddedTexture
              * @param texture The bengine::moddedTexture to render
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics) (will stretch the texture to fill the given rectangle)
              */
-            void renderModdedTexture(const bengine::moddedTexture &texture, SDL_Rect *dst) {
+            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst) {
+                const SDL_Rect frame = texture.getFrame();
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopy(this->renderer, texture.getTexture(), texture.getFrame(), &destination) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &destination) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopy(this->renderer, texture.getTexture(), texture.getFrame(), dst) != 0) {
+                if (SDL_RenderCopy(this->renderer, texture.getTexture(), &frame, &dst) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                     bengine::window::printError();
                 }
-            }
-            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst) {
-                SDL_Rect destination = dst;
-                this->renderModdedTexture(texture, &destination);
             }
             /** Render a bengine::moddedTexture while also applying rotations/reflections
              * @param texture The bengine::moddedTexture to render
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics) (will stretch the texture to fill the given rectangle)
              * @param angle The angle to rotate the texture (degrees)
-             * @param pivot The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
+             * @param center The point to rotate around (px for both metrics)  relative to the top-left corner of the destination rectangle
              * @param flip How to flip the rectangle (SDL_FLIP_NONE, SDL_FLIP_HORIZONTAL, SDL_FLIP_VERTICAL can be OR'd together)
              */
-            void renderModdedTexture(const bengine::moddedTexture &texture, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                const SDL_Rect frame = texture.getFrame();
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), &destination, -angle, pivot, flip) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &destination, -angle, &pivot, flip) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), dst, -angle, pivot, flip) != 0) {
+                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &dst, -angle, &pivot, flip) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                     bengine::window::printError();
                 }
-            }
-            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                this->renderModdedTexture(texture, &destination, angle, pivot, flip);
-            }
-            void renderModdedTexture(const bengine::moddedTexture &texture, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Point p = pivot;
-                this->renderModdedTexture(texture, dst, angle, &p, flip);
-            }
-            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect destination = dst;
-                SDL_Point p = pivot;
-                this->renderModdedTexture(texture, &destination, angle, &p, flip);
             }
 
             /** Render a bengine::shiftingTexture
              * @param texture The bengine::shiftingTexture to render
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics) (will stretch the texture to fill the given rectangle)
              */
-            void renderShiftingTexture(const bengine::shiftingTexture &texture, SDL_Rect *dst) {
+            void renderShiftingTexture(const bengine::shiftingTexture &texture, const SDL_Rect &dst) {
+                const SDL_Rect frame = texture.getFrame();
+                const SDL_Point pivot = texture.getPivot();
                 if (this->stretchGraphics) {
-                    const SDL_Rect destination = {bengine::window::stretchX(dst->x), bengine::window::stretchY(dst->y), bengine::window::stretchX(dst->w), bengine::window::stretchY(dst->h)};
-                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), &destination, -texture.getAngle(), texture.getPivot(), texture.getFlip()) != 0) {
+                    const SDL_Rect destination = {bengine::window::stretchX(dst.x), bengine::window::stretchY(dst.y), bengine::window::stretchX(dst.w), bengine::window::stretchY(dst.h)};
+                    if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &destination, -texture.getAngle(), &pivot, texture.getFlip()) != 0) {
                         std::cout << "Window \"" << this->title << "\" failed to render bengine::shiftingTexture";
                         bengine::window::printError();
                     }
                     return;
                 }
-                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), texture.getFrame(), dst, -texture.getAngle(), texture.getPivot(), texture.getFlip()) != 0) {
+                if (SDL_RenderCopyEx(this->renderer, texture.getTexture(), &frame, &dst, -texture.getAngle(), &pivot, texture.getFlip()) != 0) {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::shiftingTexture";
                     bengine::window::printError();
                 }
-            }
-            void renderShiftingTexture(const bengine::shiftingTexture &texture, const SDL_Rect &dst) {
-                SDL_Rect destination = dst;
-                this->renderShiftingTexture(texture, &destination);
             }
 
             /** Render text using a TTF_Font based off of a point (supports most unicode characters)
@@ -1069,10 +994,10 @@ namespace bengine {
             void renderText(TTF_Font *font, const char16_t *text, const int &x, const int &y, const Uint32 &wrapWidth, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
                 SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, wrapWidth);
 
-                SDL_Rect src = {0, 0, surface->w, surface->h};
-                SDL_Rect dst = {x, y, surface->w, surface->h};
-                bengine::window::renderSDLTexture(SDL_CreateTextureFromSurface(this->renderer, surface), &src, &dst);
-
+                const SDL_Rect src = {0, 0, surface->w, surface->h};
+                const SDL_Rect dst = {x, y, surface->w, surface->h};
+                bengine::window::renderSDLTexture(SDL_CreateTextureFromSurface(this->renderer, surface), src, dst);
+                
                 SDL_FreeSurface(surface);
                 surface = nullptr;
             }
@@ -1082,21 +1007,17 @@ namespace bengine {
              * @param dst The portion of the window/dummy texture to copy to (px for all 4 metrics) (will stretch the text to fill the given rectangle)
              * @param color The color to fill the circle with as an SDL_Color
              */
-            void renderText(TTF_Font *font, const char16_t *text, SDL_Rect *dst, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
-                SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, dst->w);
+            void renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
+                SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, dst.w);
                 SDL_Texture *texture = SDL_CreateTextureFromSurface(this->renderer, surface);
                 
-                SDL_Rect src = {0, 0, surface->w, surface->h};
-                bengine::window::renderSDLTexture(texture, &src, dst);
+                const SDL_Rect src = {0, 0, surface->w, surface->h};
+                bengine::window::renderSDLTexture(texture, src, dst);
 
                 SDL_FreeSurface(surface);
                 SDL_DestroyTexture(texture);
                 surface = nullptr;
                 texture = nullptr;
-            }
-            void renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
-                SDL_Rect destination = dst;
-                this->renderText(font, text, &destination, color);
             }
     };
 }
