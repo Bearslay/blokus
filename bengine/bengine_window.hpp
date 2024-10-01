@@ -855,17 +855,17 @@ namespace bengine {
                     bengine::window::printError();
                 }
             }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
-                SDL_Rect source = src, destination = dst;
-                this->renderSDLTexture(texture, &source, &destination);
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst) {
+                SDL_Rect source = src;
+                this->renderSDLTexture(texture, &source, dst);
             }
             void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst) {
                 SDL_Rect destination = dst;
                 this->renderSDLTexture(texture, src, &destination);
             }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst) {
-                SDL_Rect source = src;
-                this->renderSDLTexture(texture, &source, dst);
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst) {
+                SDL_Rect source = src, destination = dst;
+                this->renderSDLTexture(texture, &source, &destination);
             }
             /** Render an SDL_Texture while also applying rotations/reflections
              * @param texture The SDL_Texture to render
@@ -889,36 +889,36 @@ namespace bengine {
                     bengine::window::printError();
                 }
             }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src, destination = dst;
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, &source, &destination, angle, &p, flip);
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect source = src;
+                this->renderSDLTexture(texture, &source, dst, angle, pivot, flip);
             }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
                 SDL_Rect destination = dst;
+                this->renderSDLTexture(texture, src, &destination, angle, pivot, flip);
+            }
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect source = src, destination = dst;
+                this->renderSDLTexture(texture, &source, &destination, angle, pivot, flip);
+            }
+            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dst, const double &angle, SDL_Point &pivot, const SDL_RendererFlip &flip) {
                 SDL_Point p = pivot;
-                this->renderSDLTexture(texture, src, &destination, angle, &p, flip);
+                this->renderSDLTexture(texture, src, dst, angle, &p, flip);
             }
             void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
                 SDL_Rect source = src;
                 SDL_Point p = pivot;
                 this->renderSDLTexture(texture, &source, dst, angle, &p, flip);
             }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dst, const double &angle, SDL_Point &pivot, const SDL_RendererFlip &flip) {
-                SDL_Point p = pivot;
-                this->renderSDLTexture(texture, src, dst, angle, &p, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src, destination = dst;
-                this->renderSDLTexture(texture, &source, &destination, angle, pivot, flip);
-            }
-            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+            void renderSDLTexture(SDL_Texture *texture, SDL_Rect *src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
                 SDL_Rect destination = dst;
-                this->renderSDLTexture(texture, src, &destination, angle, pivot, flip);
+                SDL_Point p = pivot;
+                this->renderSDLTexture(texture, src, &destination, angle, &p, flip);
             }
-            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, SDL_Rect *dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
-                SDL_Rect source = src;
-                this->renderSDLTexture(texture, &source, dst, angle, pivot, flip);
+            void renderSDLTexture(SDL_Texture *texture, const SDL_Rect &src, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect source = src, destination = dst;
+                SDL_Point p = pivot;
+                this->renderSDLTexture(texture, &source, &destination, angle, &p, flip);
             }
 
             /** Render a bengine::basicTexture
@@ -938,6 +938,10 @@ namespace bengine {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::basicTexture";
                     bengine::window::printError();
                 }
+            }
+            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst) {
+                SDL_Rect destination = dst;
+                this->renderBasicTexture(texture, &destination);
             }
             /** Render a bengine::basicTexture while also applying rotations/reflections
              * @param texture The bengine::basicTexture to render
@@ -960,6 +964,19 @@ namespace bengine {
                     bengine::window::printError();
                 }
             }
+            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect destination = dst;
+                this->renderBasicTexture(texture, &destination, angle, pivot, flip);
+            }
+            void renderBasicTexture(const bengine::basicTexture &texture, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                SDL_Point p = pivot;
+                this->renderBasicTexture(texture, dst, angle, &p, flip);
+            }
+            void renderBasicTexture(const bengine::basicTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect destination = dst;
+                SDL_Point p = pivot;
+                this->renderBasicTexture(texture, &destination, angle, &p, flip);
+            }
 
             /** Render a bengine::moddedTexture
              * @param texture The bengine::moddedTexture to render
@@ -978,6 +995,10 @@ namespace bengine {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::moddedTexture";
                     bengine::window::printError();
                 }
+            }
+            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst) {
+                SDL_Rect destination = dst;
+                this->renderModdedTexture(texture, &destination);
             }
             /** Render a bengine::moddedTexture while also applying rotations/reflections
              * @param texture The bengine::moddedTexture to render
@@ -1000,6 +1021,19 @@ namespace bengine {
                     bengine::window::printError();
                 }
             }
+            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst, const double &angle, SDL_Point *pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect destination = dst;
+                this->renderModdedTexture(texture, &destination, angle, pivot, flip);
+            }
+            void renderModdedTexture(const bengine::moddedTexture &texture, SDL_Rect *dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                SDL_Point p = pivot;
+                this->renderModdedTexture(texture, dst, angle, &p, flip);
+            }
+            void renderModdedTexture(const bengine::moddedTexture &texture, const SDL_Rect &dst, const double &angle, const SDL_Point &pivot, const SDL_RendererFlip &flip) {
+                SDL_Rect destination = dst;
+                SDL_Point p = pivot;
+                this->renderModdedTexture(texture, &destination, angle, &p, flip);
+            }
 
             /** Render a bengine::shiftingTexture
              * @param texture The bengine::shiftingTexture to render
@@ -1018,6 +1052,10 @@ namespace bengine {
                     std::cout << "Window \"" << this->title << "\" failed to render bengine::shiftingTexture";
                     bengine::window::printError();
                 }
+            }
+            void renderShiftingTexture(const bengine::shiftingTexture &texture, const SDL_Rect &dst) {
+                SDL_Rect destination = dst;
+                this->renderShiftingTexture(texture, &destination);
             }
 
             /** Render text using a TTF_Font based off of a point (supports most unicode characters)
@@ -1055,6 +1093,10 @@ namespace bengine {
                 SDL_DestroyTexture(texture);
                 surface = nullptr;
                 texture = nullptr;
+            }
+            void renderText(TTF_Font *font, const char16_t *text, const SDL_Rect &dst, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
+                SDL_Rect destination = dst;
+                this->renderText(font, text, &destination, color);
             }
     };
 }

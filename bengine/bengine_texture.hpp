@@ -26,7 +26,7 @@ namespace bengine {
              * @param texture The SDL_Texture to use as a source
              * @param frame The portion of the source texture to actually display
              */
-            basicTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame) {
+            basicTexture(SDL_Texture *texture, const SDL_Rect &frame) {
                 bengine::basicTexture::setTexture(texture);
                 bengine::basicTexture::setFrame(frame);
             }
@@ -105,9 +105,7 @@ namespace bengine {
              * @param frame The portion of the source texture to actually display
              * @param colorMod The color modification for the texture
              */
-            moddedTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, const SDL_Color &colorMod = {255, 255, 255, 255}) {
-                bengine::basicTexture::setTexture(texture);
-                bengine::basicTexture::setFrame(frame);
+            moddedTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::basicTexture(texture, frame) {
                 bengine::moddedTexture::setColorMod(colorMod);
             }
             /** bengine::moddedTexture constructor; reference-based
@@ -115,9 +113,7 @@ namespace bengine {
              * @param frame The portion of the source texture to actually display
              * @param colorMod The color modification for the texture
              */
-            moddedTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame, const SDL_Color &colorMod = {255, 255, 255, 255}) {
-                bengine::basicTexture::setTexture(texture);
-                bengine::basicTexture::setFrame(frame);
+            moddedTexture(SDL_Texture *texture, const SDL_Rect &frame, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::basicTexture(texture, frame) {
                 bengine::moddedTexture::setColorMod(colorMod);
             }
             /// @brief bengine::moddedTexture deconstructor
@@ -266,10 +262,15 @@ namespace bengine {
              * @param angle The angle for the texture to be rotated at
              * @param colorMod The color modification for the texture
              */
-            shiftingTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, SDL_Point *pivot = NULL, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) {
-                bengine::basicTexture::setTexture(texture);
-                bengine::basicTexture::setFrame(frame);
-                bengine::moddedTexture::setColorMod(colorMod);
+            shiftingTexture(SDL_Texture *texture = NULL, SDL_Rect *frame = NULL, SDL_Point *pivot = NULL, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::moddedTexture(texture, frame, colorMod) {
+                bengine::shiftingTexture::setPivot(pivot);
+                bengine::shiftingTexture::setAngle(angle);
+            }
+            shiftingTexture(SDL_Texture *texture, const SDL_Rect &frame, SDL_Point *pivot, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::moddedTexture(texture, frame, colorMod) {
+                bengine::shiftingTexture::setPivot(pivot);
+                bengine::shiftingTexture::setAngle(angle);
+            }
+            shiftingTexture(SDL_Texture *texture, SDL_Rect *frame, const SDL_Point &pivot, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::moddedTexture(texture, frame, colorMod) {
                 bengine::shiftingTexture::setPivot(pivot);
                 bengine::shiftingTexture::setAngle(angle);
             }
@@ -280,10 +281,7 @@ namespace bengine {
              * @param angle The angle for the texture to be rotated at
              * @param colorMod The color modification for the texture
              */
-            shiftingTexture(SDL_Texture *texture = NULL, const SDL_Rect &frame, const SDL_Point &pivot, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) {
-                bengine::basicTexture::setTexture(texture);
-                bengine::basicTexture::setFrame(frame);
-                bengine::moddedTexture::setColorMod(colorMod);
+            shiftingTexture(SDL_Texture *texture, const SDL_Rect &frame, const SDL_Point &pivot, const double &angle = 0, const SDL_Color &colorMod = {255, 255, 255, 255}) : bengine::moddedTexture(texture, frame, colorMod) {
                 bengine::shiftingTexture::setPivot(pivot);
                 bengine::shiftingTexture::setAngle(angle);
             }
