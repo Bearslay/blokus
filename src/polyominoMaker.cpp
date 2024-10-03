@@ -24,12 +24,80 @@ class polymaker : public bengine::loop {
 
         TTF_Font *font = TTF_OpenFont("dev/fonts/GNU-Unifont.ttf", 48);
 
+        /** Print the grid (cut to content and with formatting)
+         * 
+         * 0's are blank space and 1's are tiles
+         * Colons mark the end of a row for a piece and semi-colons mark the end of the last row for a piece
+         * 
+         * If the grid is either blank or has a size of zero, then "1;" is printed as a fall-back
+         * 
+         * Example:
+         * ░░░░░
+         * ░░█░░
+         * ░███░ -> 010:111:001;
+         * ░░░█░
+         * ░░░░░
+         */
         void printGrid() {
-            for (Uint8 i = 0; i < this->grid.size(); i++) {
-                for (Uint8 j = 0; j < this->grid.size(); j++) {
-                    std::cout << (this->grid.at(i).at(j) >= 0);
+            std::vector<std::vector<char>> output = this->grid;
+
+            if (output.size() < 1) {
+                std::cout << "1;\n";
+                return;
+            }
+
+            // Catch empty grids; convert it into a single tile
+            for (Uint8 i = 0; i < output.size(); i++) {
+                bool halt = false;
+                for (Uint8 j = 0; j < output.at(i).size(); j++) {
+                    if (output.at(i).at(j) >= 0) {
+                        halt = true;
+                        break;
+                    }
                 }
-                std::cout << "\n";
+                if (halt) {
+                    break;
+                }
+                if (i == output.size() - 1) {
+                    std::cout << "1;\n";
+                    return;
+                }
+            }
+
+            // Remove empty rows
+            for (std::size_t i = output.size(); i--;) {
+                Uint8 rowSum = 0;
+                for (std::size_t j = 0; j < output.at(i).size(); j++) {
+                    if (output.at(i).at(j) >= 0) {
+                        rowSum++;
+                    }
+                }
+                if (rowSum == 0) {
+                    output.erase(output.begin() + i);
+                }
+            }
+            // Remove empty columns
+            for (std::size_t i = output.at(0).size(); i--;) {
+                Uint8 colSum = 0;
+                for (std::size_t j = 0; j < output.size(); j++) {
+                    if (output.at(j).at(i) >= 0) {
+                        colSum++;
+                    }
+                }
+                if (colSum > 0) {
+                    continue;
+                }
+                for (std::size_t j = 0; j < output.size(); j++) {
+                    output[j].erase(output.at(j).begin() + i);
+                }
+            }
+
+            // Print the grid
+            for (Uint8 i = 0; i < output.size(); i++) {
+                for (Uint8 j = 0; j < output.at(i).size(); j++) {
+                    std::cout << (output.at(i).at(j) >= 0);
+                }
+                std::cout << (i < output.size() - 1 ? ":" : ";");
             }
             std::cout << "\n";
         }
@@ -90,8 +158,8 @@ class polymaker : public bengine::loop {
         void render() {
             this->window.drawThickRectangle(20, 520, 200, 80, 10, THICKSHAPE_INNER);
             this->window.drawThickRectangle(240, 520, 200, 80, 10, THICKSHAPE_INNER);
-            this->window.renderText(this->font, u"PRINT", {60, 536}, 0);
-            this->window.renderText(this->font, u"CLEAR", {280, 536}, 0);
+            this->window.renderText(this->font, u"PRINT", 60, 536, 0);
+            this->window.renderText(this->font, u"CLEAR", 280, 536, 0);
 
             const Uint16 cellSize = 480 / this->grid.size();
             for (Uint8 i = 0; i < this->grid.size(); i++) {
