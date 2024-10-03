@@ -991,7 +991,7 @@ namespace bengine {
              * @param wrapWidth The maximum width for the text to render (px) (a width of zero prevents any wrapping)
              * @param color The color to fill the circle with as an SDL_Color
              */
-            void renderText(TTF_Font *font, const char16_t *text, const int &x, const int &y, const Uint32 &wrapWidth, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
+            void renderText(TTF_Font *font, const char16_t *text, const int &x, const int &y, const Uint32 &wrapWidth = 0, const SDL_Color &color = bengine::colors[bengine::COLOR_WHITE]) {
                 SDL_Surface *surface = TTF_RenderUNICODE_Blended_Wrapped(font, (Uint16*)text, color, wrapWidth);
 
                 const SDL_Rect src = {0, 0, surface->w, surface->h};
