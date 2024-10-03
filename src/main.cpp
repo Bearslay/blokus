@@ -8,8 +8,8 @@
 #include "blokus.hpp"
 
 int main(int argc, char* args[]) {
-    blokus::game g(20, 4, 1, 1, 1, 0);
-    // blokus::game g;
+    // blokus::game g(20, 4, 1, 1, 1, 0);
+    blokus::game g;
     g.run();
 
     return 0;
