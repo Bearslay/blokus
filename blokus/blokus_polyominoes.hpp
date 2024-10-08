@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <climits>
 
 /** Formatting for polyomino storage files:
  * d (dims of each polyomino; usually the amount of cells in each)
@@ -34,18 +35,18 @@ namespace blokus {
     typedef std::size_t polyType;
     typedef std::size_t polyominoType;
     typedef enum {
-        POLYTYPE_BASE = 0,             // Monominoes, Dominoes, Triominoes, Tetrominoes, Pentominoes
-        POLYTYPE_HEXOMINO = 1,         // Hexominoes
-        POLYTYPE_HEPTOMINO = 2,        // Heptominoes
-        POLYTYPE_OCTOMINO = 3,         // Octominoes
-        POLYTYPE_NONOMINO = 4,         // Nonominoes
-        POLYTYPE_DECOMINO = 5,         // Decominoes
-        POLYTYPE_HEX = 1,              // Hexominoes
-        POLYTYPE_HEPT = 2,             // Heptominoes
-        POLYTYPE_OCT = 3,              // Octominoes
-        POLYTYPE_NON = 4,              // Nonominoes
-        POLYTYPE_DEC = 5,              // Decominoes
-        POLYTYPE_SENTINAL = UINT64_MAX // A sentinal value for polyomino types
+        POLYTYPE_BASE = 0,                // Monominoes, Dominoes, Triominoes, Tetrominoes, Pentominoes
+        POLYTYPE_HEXOMINO = 1,            // Hexominoes
+        POLYTYPE_HEPTOMINO = 2,           // Heptominoes
+        POLYTYPE_OCTOMINO = 3,            // Octominoes
+        POLYTYPE_NONOMINO = 4,            // Nonominoes
+        POLYTYPE_DECOMINO = 5,            // Decominoes
+        POLYTYPE_HEX = 1,                 // Hexominoes
+        POLYTYPE_HEPT = 2,                // Heptominoes
+        POLYTYPE_OCT = 3,                 // Octominoes
+        POLYTYPE_NON = 4,                 // Nonominoes
+        POLYTYPE_DEC = 5,                 // Decominoes
+        POLYTYPE_SENTINAL = ULLONG_MAX    // A sentinal value for polyomino types
     } polyominoTypes;
 
     /** Load a text file containing polyomino information into a 3-dimensional std::vector
@@ -54,6 +55,8 @@ namespace blokus {
      */
     std::vector<std::vector<std::vector<bool>>> readPolyominoFile(const char* filepath) {
         std::vector<std::vector<std::vector<bool>>> output;
+        output.emplace_back();
+        output[0].emplace_back();
         
         std::ifstream file;
         file.open(filepath, std::ios::in);
@@ -62,42 +65,29 @@ namespace blokus {
             return output;
         }
 
-        // Current line being processed from the file
-        std::string line;
+        std::string input;
+        std::getline(file, input);
 
-        std::getline(file, line);
-        try {
-            std::stoi(line);
-        } catch (...) {
-            file.close();
+        if (input.find(';') == std::string::npos) {
+            std::cout << "ERROR: No usable content in file" << filepath << "\n";
             return output;
         }
-        // The dimensions of each polyomino in the file
-        const unsigned char dims = std::stoi(line);
 
-        std::getline(file, line);
-        try {
-            std::stoi(line);
-        } catch (...) {
-            file.close();
-            return output;
-        }
-        // The amount of polyominoes in the file
-        const unsigned short count = std::stoi(line);
-        
-        // Place each polyomino into the array correctly
-        for (unsigned short i = 0; i < count; i++) {
-            output.emplace_back();
-            std::getline(file, line);
-
-            for (unsigned char j = 0; j < dims; j++) {
-                output[i].emplace_back();
-                std::getline(file, line);
-
-                for (unsigned char k = 0; k < line.length(); k++) {
-                    output[i][j].emplace_back(line[k] == '1');
-                }
+        std::size_t piece = 0, row = 0;
+        for (std::size_t i = 0; i < input.length(); i++) {
+            if (input.at(i) == ':') {
+                output[piece].emplace_back();
+                row++;
+                continue;
             }
+            if (input.at(i) == ';') {
+                output.emplace_back();
+                piece++;
+                output[piece].emplace_back();
+                row = 0;
+                continue;
+            }
+            output[piece][row].emplace_back(input.at(i) == '1');
         }
 
         file.close();
@@ -152,6 +142,36 @@ namespace blokus {
         blokus::readPolyominoFile("dev/polyominoes/heptominoes.txt"),
         blokus::readPolyominoFile("dev/polyominoes/octominoes.txt")
     };
+
+    /** Print out a single polyomino
+     * @param grid A 2D std::vector of booleans representing a polyomino
+     */
+    void printPolyomino(const std::vector<std::vector<bool>> &grid) {
+        for (std::size_t i = 0; i < grid.size(); i++) {
+            for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                std::cout << (grid.at(i).at(j) ? "██" : "░░");
+            }
+            std::cout << "\n";
+        }
+    }
+    /** Print out a single polyomino from a list of polyominoes
+     * @param list An std::vector containing 2D std::vectors of booleans representing polyominoes
+     * @param polyomino The polyomino from the list to print
+     */
+    void printPolyomino(const std::vector<std::vector<std::vector<bool>>> &list, const std::size_t &polyomino) {
+        if (polyomino >= list.size()) {
+            blokus::printPolyomino(list.at(polyomino));
+        }
+    }
+    /** Print out a single polyomino from the list of polyominoes loaded within blokus::rawPolyominoData
+     * @param pieceSet Which of the piece sets to use (base, hex, hept, oct)
+     * @param polyomino Which of the polyominoes from the piece set to print
+     */
+    void printPolyomino(const std::size_t &pieceSet, const std::size_t &polyomino) {
+        if (pieceSet < blokus::rawPolyominoData.size() && polyomino < blokus::rawPolyominoData.at(pieceSet).size()) {
+            blokus::printPolyomino(blokus::rawPolyominoData.at(pieceSet).at(polyomino));
+        }
+    }
 }
 
 #endif // BLOKUS_POLYOMINOES_hpp

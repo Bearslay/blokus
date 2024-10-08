@@ -41,7 +41,7 @@ namespace blokus {
                     this->id = id;
                     this->grid = blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id);
                     for (unsigned char i = 0; i < blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).size(); i++) {
-                        for (unsigned char j = 0; j < blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).size(); j++) {
+                        for (unsigned char j = 0; j < blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).at(i).size(); j++) {
                             if (blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(id).at(i).at(j)) {
                                 this->tiles++;
                             }
@@ -63,7 +63,7 @@ namespace blokus {
                     this->id += blokus::polyominoAmounts[i];
                 }
 
-                // Default case for a piece given a bad id
+                // Default case for a piece given a bad id (1x1 tile)
                 this->id = 0;
                 this->grid = blokus::rawPolyominoData.at(blokus::POLYTYPE_BASE).at(0);
                 this->tiles = 1;
@@ -73,7 +73,7 @@ namespace blokus {
             void print() const {
                 std::cout << this->id << "\n";
                 for (unsigned char i = 0; i < this->grid.size(); i++) {
-                    for (unsigned char j = 0; j < this->grid.size(); j++) {
+                    for (unsigned char j = 0; j < this->grid.at(i).size(); j++) {
                         std::cout << (this->grid.at(i).at(j) ? "██" : "░░");
                     }
                     std::cout << "\n";
