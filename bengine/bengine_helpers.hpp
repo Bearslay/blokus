@@ -281,8 +281,65 @@ namespace bengine {
     /// @brief A class containing useful functions designed for 4/8-bit autotiling
     class autotiler {
         private:
-            /// @brief Key containing the 48 bitmasks relevant to eight-bit autotiling
-            const static unsigned char key[48];
+            /// @brief Key containing the 47 bitmasks relevant to 8-bit autotiling
+            const static unsigned char key[47];
+
+            /// @brief List of unicode characters used in terminal-based 4-bit autotiling
+            const static char* fourBitUnicode[32];
+            /// @brief List of unicode characters used in terminal-based 8-bit autotiling
+            const static char* eightBitUnicode[94];
+
+            /** Calculate the 4-bit mask value for a given tile within a grid
+             * 
+             * Any bounds-checking needs to happen outside of this function
+             * 
+             * @param grid The grid containing 4-bit mask values
+             * @param x The x-position (col) of the tile to update within the grid
+             * @param y The y-position (row) of the tile to update within the grid
+             * @param solidBoundaries Whether to consider the edges of the grid as full or empty tiles
+             * @returns The updated value of the indicated tile or -1 if the tile is is already -1
+             */
+            static char calc4BitMaskValue(const std::vector<std::vector<char>> &grid, const unsigned long int &x, const unsigned long int &y, const bool &solidBoundaries = false) {
+                // Check to see if the current tile would even display anything
+                if (grid.at(y).at(x) < 0) {
+                    return -1;
+                }
+                return (y > 0 ? (grid.at(y - 1).at(x) >= 0) : solidBoundaries) + (x > 0 ? (grid.at(y).at(x - 1) >= 0) : solidBoundaries) * 2 + (x < grid.at(0).size() - 1 ? (grid.at(y).at(x + 1) >= 0) : solidBoundaries) * 4 + (y < grid.size() - 1 ? (grid.at(y + 1).at(x) >= 0) : solidBoundaries) * 8;
+            }
+
+            /** Calculate the 8-bit mask value for a given tile within a grid
+             * 
+             * Any bounds-checking needs to happen outside of this function
+             * 
+             * @param grid The grid containing 8-bit mask values
+             * @param x The x-position (col) of the tile to update within the grid
+             * @param y The y-position (row) of the tile to update within the grid
+             * @param solidBoundaries Whether to consider the edges of the grid as full or empty tiles
+             * @returns The updated value of the indicated tile or -1 if the tile is is already -1
+             */
+            static char calc8BitMaskValue(const std::vector<std::vector<char>> &grid, const unsigned long int &x, const unsigned long int &y, const bool &solidBoundaries = false, const bool &doBoundsCheck = false) {
+                // Check to see if the current tile would even display anything
+                if (grid.at(y).at(x) < 0) {
+                    return -1;
+                }
+
+                const bool tl = y > 0 && x > 0 ? (grid.at(y - 1).at(x - 1) >= 0) : solidBoundaries;
+                const bool t = y > 0 ? (grid.at(y - 1).at(x) >= 0) : solidBoundaries;
+                const bool tr = y > 0 && x < grid.at(0).size() - 1 ? (grid.at(y - 1).at(x + 1) >= 0) : solidBoundaries;
+                const bool l = x > 0 ? (grid.at(y).at(x - 1) >= 0) : solidBoundaries;
+                const bool r = x < grid.at(0).size() - 1 ? (grid.at(y).at(x + 1) >= 0) : solidBoundaries;
+                const bool bl = y < grid.size() - 1 && x > 0 ? (grid.at(y + 1).at(x - 1) >= 0) : solidBoundaries;
+                const bool b = y < grid.size() - 1 ? (grid.at(y + 1).at(x) >= 0) : solidBoundaries;
+                const bool br = y < grid.size() - 1 && x < grid.at(0).size() - 1 ? (grid.at(y + 1).at(x + 1) >= 0) : solidBoundaries;
+
+                const unsigned char maskVal = (tl && t && l) + t * 2 + (tr && t && r) * 4 + l * 8 + r * 16 + (bl && b && l) * 32 + b * 64 + (br && b && r) * 128;
+                for (unsigned char i = 0; i < 47; i++) {
+                    if (maskVal == bengine::autotiler::key[i]) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
 
         public:
             /// @brief bengine::autoTiler constructor
@@ -314,17 +371,8 @@ namespace bengine {
                         if (y + i < 0 || y + i >= grid.size() || x + j < 0 || x + j >= grid.at(0).size()) {
                             continue;
                         }
-                        // Check to see if the current tile would even display anything
-                        if (grid.at(y + i).at(x + j) < 0) {
-                            continue;
-                        }
-
-                        const bool t = y + i > 0 ? (grid.at(y + i - 1).at(x + j) >= 0) : solidBoundaries;
-                        const bool l = x + j > 0 ? (grid.at(y + i).at(x + j - 1) >= 0) : solidBoundaries;
-                        const bool r = x + j < grid.at(0).size() - 1 ? (grid.at(y + i).at(x + j + 1) >= 0) : solidBoundaries;
-                        const bool b = y + i < grid.size() - 1 ? (grid.at(y + i + 1).at(x + j) >= 0) : solidBoundaries;
-
-                        grid[y + i][x + j] = t + l * 2 + r * 4 + b * 8;
+                        // Update the mask value for the current tile
+                        grid[y + i][x + j] = bengine::autotiler::calc4BitMaskValue(grid, x + j, y + i, solidBoundaries);
                     }
                 }
                 return grid.at(y).at(x);
@@ -349,38 +397,109 @@ namespace bengine {
                         if (y + i < 0 || y + i >= grid.size() || x + j < 0 || x + j >= grid.at(0).size()) {
                             continue;
                         }
-                        // Check to see if the current tile would even display anything
-                        if (grid.at(y + i).at(x + j) < 0) {
-                            continue;
-                        }
-
-                        const bool tl = y + i > 0 && x + j > 0 ? (grid.at(y + i - 1).at(x + j - 1) >= 0) : solidBoundaries;
-                        const bool t = y + i > 0 ? (grid.at(y + i - 1).at(x + j) >= 0) : solidBoundaries;
-                        const bool tr = y + i > 0 && x + j < grid.at(0).size() - 1 ? (grid.at(y + i - 1).at(x + j + 1) >= 0) : solidBoundaries;
-                        const bool l = x + j > 0 ? (grid.at(y + i).at(x + j - 1) >= 0) : solidBoundaries;
-                        const bool r = x + j < grid.at(0).size() - 1 ? (grid.at(y + i).at(x + j + 1) >= 0) : solidBoundaries;
-                        const bool bl = y + i < grid.size() - 1 && x + j > 0 ? (grid.at(y + i + 1).at(x + j - 1) >= 0) : solidBoundaries;
-                        const bool b = y + i < grid.size() - 1 ? (grid.at(y + i + 1).at(x + j) >= 0) : solidBoundaries;
-                        const bool br = y + i < grid.size() - 1 && x + j < grid.at(0).size() - 1 ? (grid.at(y + i + 1).at(x + j + 1) >= 0) : solidBoundaries;
-
-                        const unsigned char maskVal = (tl && t && l) + t * 2 + (tr && t && r) * 4 + l * 8 + r * 16 + (bl && b && l) * 32 + b * 64 + (br && b && r) * 128;
-                        if (maskVal == 0) {
-                            grid[y + i][x + j] = 47;
-                            break;
-                        }
-                        for (unsigned char i = 0; i < 48; i++) {
-                            if (maskVal == key[i]) {
-                                grid[y + i][x + j] = i + 1;
-                                break;
-                            }
-                        }
+                        // Update the mask value for the current tile
+                        grid[y + i][x + j] = bengine::autotiler::calc8BitMaskValue(grid, x + j, y + i, solidBoundaries);
                     }
                 }
                 return grid.at(y).at(x);
             }
+
+            /** Populate a grid of full/empty tiles with appropriate 4-bit mask values
+             * @param grid The grid containing full (true) or empty (false) tiles to be populated
+             * @param solidBoundaries Whether to consider the borders of the grid to have full or empty tiles
+             * @returns A grid of the same dimensions as the input grid, but containing 4-bit mask values rather than boolean ones
+             */
+            static std::vector<std::vector<char>> populateGridFourBit(const std::vector<std::vector<bool>> &grid, const bool &solidBoundaries = false) {
+                std::vector<std::vector<char>> output;
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    output.emplace_back();
+                    for (std::size_t j = 0; j < grid.at(0).size(); j++) {
+                        output[i].emplace_back(grid.at(i).at(j) ? 1 : -1);
+                    }
+                }
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        output[i][j] = bengine::autotiler::calc4BitMaskValue(output, j, i, false);
+                    }
+                }
+                return output;
+            }
+
+            /** Populate a grid of full/empty tiles with appropriate 8-bit mask values
+             * @param grid The grid containing full (true) or empty (false) tiles to be populated
+             * @param solidBoundaries Whether to consider the borders of the grid to have full or empty tiles
+             * @returns A grid of the same dimensions as the input grid, but containing 8-bit mask values rather than boolean ones
+             */
+            static std::vector<std::vector<char>> populateGridEightBit(const std::vector<std::vector<bool>> &grid, const bool &solidBoundaries = false) {
+                std::vector<std::vector<char>> output;
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    output.emplace_back();
+                    for (std::size_t j = 0; j < grid.at(0).size(); j++) {
+                        output[i].emplace_back(grid.at(i).at(j) ? 1 : -1);
+                    }
+                }
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        output[i][j] = bengine::autotiler::calc8BitMaskValue(output, j, i, false);
+                    }
+                }
+                return output;
+            }
+
+            /** Print a grid of 4-bit mask values to iostream using unicode block element characters
+             * @param grid The grid of 4-bit mask values to print
+             */
+            static void printFourBitGrid(const std::vector<std::vector<char>> &grid) {
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        if (grid.at(i).at(j) < 0) {
+                            std::cout << "    ";
+                            continue;
+                        }
+                        std::cout << bengine::autotiler::fourBitUnicode[(unsigned char)grid.at(i).at(j)];
+                    }
+                    std::cout << "\n";
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        if (grid.at(i).at(j) < 0) {
+                            std::cout << "    ";
+                            continue;
+                        }
+                        std::cout << bengine::autotiler::fourBitUnicode[(unsigned char)grid.at(i).at(j) + 16];
+                    }
+                    std::cout << "\n";
+                }
+            }
+
+            /** Print a grid of 8-bit mask values to iostream using unicode block element characters
+             * @param grid The grid of 8-bit mask values to print
+             */
+            static void printEightBitGrid(const std::vector<std::vector<char>> &grid) {
+                for (std::size_t i = 0; i < grid.size(); i++) {
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        if (grid.at(i).at(j) < 0) {
+                            std::cout << "    ";
+                            continue;
+                        }
+                        std::cout << bengine::autotiler::eightBitUnicode[(unsigned char)grid.at(i).at(j)];
+                    }
+                    std::cout << "\n";
+                    for (std::size_t j = 0; j < grid.at(i).size(); j++) {
+                        if (grid.at(i).at(j) < 0) {
+                            std::cout << "    ";
+                            continue;
+                        }
+                        std::cout << bengine::autotiler::eightBitUnicode[(unsigned char)grid.at(i).at(j) + 47];
+                    }
+                    std::cout << "\n";
+                }
+            }
     };
-    /// @brief Key containing the 48 bitmasks relevant to eight-bit autotiling
-    const unsigned char bengine::autotiler::key[48] = {2, 8, 10, 11, 16, 18, 22, 24, 26, 27, 30, 31, 64, 66, 72, 74, 75, 80, 82, 86, 88, 90, 91, 94, 95, 104, 106, 107, 120, 122, 123, 126, 127, 208, 210, 214, 216, 218, 219, 222, 223, 248, 250, 251, 254, 255};
+    /// @brief Key containing the 47 bitmasks relevant to 8-bit autotiling
+    const unsigned char bengine::autotiler::key[47] = {0, 2, 8, 10, 11, 16, 18, 22, 24, 26, 27, 30, 31, 64, 66, 72, 74, 75, 80, 82, 86, 88, 90, 91, 94, 95, 104, 106, 107, 120, 122, 123, 126, 127, 208, 210, 214, 216, 218, 219, 222, 223, 248, 250, 251, 254, 255};
+    /// @brief List of unicode characters used in terminal-based 4-bit autotiling
+    const char* bengine::autotiler::fourBitUnicode[32] = {" ▄▄ ", " ██ ", "▄▄▄ ", "▄██ ", " ▄▄▄", " ██▄", "▄▄▄▄", "▄██▄", " ▄▄ ", " ██ ", "▄▄▄ ", "▄██ ", " ▄▄▄", " ██▄", "▄▄▄▄", "▄██▄", " ▀▀ ", " ▀▀ ", "▀▀▀ ", "▀▀▀ ", " ▀▀▀", " ▀▀▀", "▀▀▀▀", "▀▀▀▀", " ██ ", " ██ ", "▀██ ", "▀██ ", " ██▀", " ██▀", "▀██▀", "▀██▀"};
+    /// @brief List of unicode characters used in terminal-based 8-bit autotiling
+    const char* bengine::autotiler::eightBitUnicode[94] = {" ▄▄ ", " ██ ", "▄▄▄ ", "▄██ ", "███ ", " ▄▄▄", " ██▄", " ███", "▄▄▄▄", "▄██▄", "███▄", "▄███", "████", " ▄▄ ", " ██ ", "▄▄▄ ", "▄██ ", "███ ", " ▄▄▄", " ██▄", " ███", "▄▄▄▄", "▄██▄", "███▄", "▄███", "████", "▄▄▄ ", "▄██ ", "███ ", "▄▄▄▄", "▄██▄", "███▄", "▄███", "████", " ▄▄▄", " ██▄", " ███", "▄▄▄▄", "▄██▄", "███▄", "▄███", "████", "▄▄▄▄", "▄██▄", "███▄", "▄███", "████", " ▀▀ ", " ▀▀ ", "▀▀▀ ", "▀▀▀ ", "▀▀▀ ", " ▀▀▀", " ▀▀▀", " ▀▀▀", "▀▀▀▀", "▀▀▀▀", "▀▀▀▀", "▀▀▀▀", "▀▀▀▀", " ██ ", " ██ ", "▀██ ", "▀██ ", "▀██ ", " ██▀", " ██▀", " ██▀", "▀██▀", "▀██▀", "▀██▀", "▀██▀", "▀██▀", "███ ", "███ ", "███ ", "███▀", "███▀", "███▀", "███▀", "███▀", " ███", " ███", " ███", "▀███", "▀███", "▀███", "▀███", "▀███", "████", "████", "████", "████", "████"};
 }
 
 #endif // BENGINE_HELPERS_hpp
