@@ -36,51 +36,41 @@ namespace blokus {
             std::u16string name = u"Red";
             SDL_Color color = {255, 0, 0, 255};
 
-            std::vector<std::vector<blokus::piece>> pieces;
+            Uint16 remainingPieces[6] = {21, 0, 0, 0, 0, 0};
+            std::vector<blokus::piece> pieces;
+
+            Uint16 getStartingIndex(const blokus::polyominoType &type) const {
+                Uint16 output = 0;
+                for (blokus::polyType i = 0; i < type; i++) {
+                    output += remainingPieces[i];
+                }
+                return output;
+            }
+            Uint16 getRemainingBaseTiles() const {
+                Uint16 output = 0;
+                for (Uint16 i = 0; i < this->remainingPieces[blokus::POLYTYPE_BASE]; i++) {
+                    output += this->pieces.at(i).getTiles();
+                }
+                return output;
+            }
 
         public:
             player(const Uint8 &baseSets = polySetMins[blokus::POLYTYPE_BASE], const Uint8 &hexSets = polySetMins[blokus::POLYTYPE_HEX], const Uint8 &heptSets = polySetMins[blokus::POLYTYPE_HEPT], const Uint8 &octSets = polySetMins[blokus::POLYTYPE_OCT]) {
                 const Uint8 setValues[4] = {baseSets, hexSets, heptSets, octSets};
 
+                for (Uint8 i = 0; i < 4; i++) {
+                    this->remainingPieces[i] = setValues[i] * blokus::polyominoAmounts[i];
+                }
+
                 Uint16 idStart = 0;
                 for (blokus::polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_OCT; i++) {
-                    this->pieces.emplace_back();
                     for (Uint8 j = 0; j < setValues[i]; j++) {
                         for (Uint8 k = 0; k < blokus::polyominoAmounts[i]; k++) {
-                            this->pieces[i].emplace_back(blokus::piece(idStart + k));
+                            this->pieces.emplace_back(blokus::piece(idStart + k));
                         }
                     }
                     idStart += blokus::polyominoAmounts[i];
                 }
-            }
-
-            void printPieces(const blokus::polyominoType &type) const {
-                if (type < blokus::POLYTYPE_BASE || type > blokus::POLYTYPE_OCT) {
-                    return;
-                }
-                for (Uint16 i = 0; i < this->pieces.at(type).size(); i++) {
-                    this->pieces.at(type).at(i).print();
-                }
-            }
-
-            Uint16 getRemainingPieces(const blokus::polyominoType &type) const {
-                if (type >= blokus::POLYTYPE_BASE && type <= blokus::POLYTYPE_OCT) {
-                    return (Uint16)this->pieces.at(type).size();
-                }
-                return this->getRemainingPieces(blokus::POLYTYPE_BASE) + this->getRemainingPieces(blokus::POLYTYPE_HEX) + this->getRemainingPieces(blokus::POLYTYPE_HEPT) + this->getRemainingPieces(blokus::POLYTYPE_OCT);
-            }
-
-            Uint16 getRemainingTiles(const blokus::polyominoType &type) const {
-                if (type == blokus::POLYTYPE_BASE) {
-                    Uint16 output = 0;
-                    for (Uint8 i = 0; i < this->pieces.at(blokus::POLYTYPE_BASE).size(); i++) {
-                        output += this->pieces.at(blokus::POLYTYPE_BASE).at(i).getTiles();
-                    }
-                    return output;
-                } else if (type >= blokus::POLYTYPE_HEX && type <= blokus::POLYTYPE_OCT) {
-                    return (Uint16)this->pieces.at(type).size() * blokus::polyominoTiles[type];
-                }
-                return this->getRemainingTiles(blokus::POLYTYPE_BASE) + this->getRemainingTiles(blokus::POLYTYPE_HEX) + this->getRemainingTiles(blokus::POLYTYPE_HEPT) + this->getRemainingTiles(blokus::POLYTYPE_OCT);
             }
 
             std::u16string getName() const {
@@ -99,6 +89,46 @@ namespace blokus {
                 this->color.b = color.b;
                 this->color.a = color.a;
                 return output;
+            }
+
+            void printPieces(const blokus::polyominoType &type) const {
+                if (type < blokus::POLYTYPE_BASE || type > blokus::POLYTYPE_OCT) {
+                    return;
+                }
+                for (Uint16 i = this->getStartingIndex(type); i < this->remainingPieces[type]; i++) {
+                    this->pieces.at(i).print();
+                }
+            }
+
+            Uint16 getRemainingPieces(const blokus::polyominoType &type) const {
+                if (type >= blokus::POLYTYPE_BASE && type <= blokus::POLYTYPE_OCT) {
+                    return this->remainingPieces[type];
+                }
+                Uint16 output = 0;
+                for (blokus::polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_DEC; i++) {
+                    output += this->remainingPieces[i];
+                }
+                return output;
+            }
+
+            Uint16 getRemainingTiles(const blokus::polyominoType &type) const {
+                if (type == blokus::POLYTYPE_BASE) {
+                    return this->getRemainingBaseTiles();
+                } else if (type >= blokus::POLYTYPE_HEX && type <= blokus::POLYTYPE_OCT) {
+                    return this->remainingPieces[type] * blokus::polyominoTiles[type];
+                }
+                Uint16 output = this->getRemainingBaseTiles();
+                for (blokus::polyType i = blokus::POLYTYPE_HEX; i <= blokus::POLYTYPE_DEC; i++) {
+                    output += this->remainingPieces[i] * blokus::polyominoTiles[type];
+                }
+                return output;
+            }
+
+            std::vector<std::vector<bool>> getPieceGrid(const Uint16 &index) const {
+                if (index < 0 || index >= this->pieces.size()) {
+                    return {{0}};
+                }
+                return this->pieces.at(index).getGrid();
             }
     };
 }
