@@ -78,6 +78,32 @@ namespace blokus {
                 }
             }
 
+            bengine::basicTexture formPolyomino(const Uint8 &player, const Uint16 &pieceId) {
+                const std::vector<std::vector<char>> grid = this->tiler.populateGridFourBit(this->players.at(player).getPieceGrid(pieceId), false);
+
+                this->window.targetDummy();
+                this->window.initDummy(grid.at(0).size() * 64, grid.size() * 64);
+                this->window.clear();
+
+                this->texture_piece_base.setColorMod(this->players.at(player).getColor());
+                for (Uint8 i = 0; i < grid.size(); i++) {
+                    for (Uint8 j = 0; j < grid.at(0).size(); j++) {
+                        if (grid.at(i).at(j) == 0) {
+                            continue;
+                        }
+                        this->texture_piece_base.setFrame({grid.at(i).at(j) % 4 * 64, grid.at(i).at(j) / 4 * 64, 64, 64});
+                        this->texture_piece_edge.setFrame({grid.at(i).at(j) % 4 * 64, grid.at(i).at(j) / 4 * 64, 64, 64});
+                        this->window.renderModdedTexture(this->texture_piece_base, {j * 64, i * 64, 64, 64});
+                        this->window.renderBasicTexture(this->texture_piece_edge, {j * 64, i * 64, 64, 64});
+                    }
+                }
+                this->window.present();
+                bengine::basicTexture output = bengine::basicTexture(this->window.copyDummy(), {0, 0, (int)grid.at(0).size() * 64, (int)grid.size() * 64});
+                this->window.targetWindow();
+                this->window.clear();
+                return output;
+            }
+
             void handleEvent() override {
                 Uint32 gridpos;
                 switch (this->event.type) {
@@ -95,7 +121,7 @@ namespace blokus {
                             this->visualsChanged = true;
                         }
                         gridpos = this->gridClickArea.checkButton(this->mstate, bengine::MOUSE1);
-                        if (gridpos != UINT32_MAX && this->board.at(gridpos % this->board.size()).at(gridpos / this->board.size()) == 0) {
+                        if (gridpos != UINT32_MAX && this->board.at(gridpos / this->board.size()).at(gridpos % this->board.size()) == 0) {
                             std::vector<std::vector<char>> playerMask;
                             for (Uint8 i = 0; i < this->board.size(); i++) {
                                 playerMask.emplace_back();
@@ -168,7 +194,7 @@ namespace blokus {
 
                 this->window.renderBasicTexture(this->texture_playerframe_small, {xpos, ypos, 800, 260});
                 this->window.renderText(this->font_general, (u"Player " + btils::to_u16string<Uint8>(id + 1) + u" - " + this->players.at(id).getName()).c_str(), xpos + 12, ypos + 10, 0, bengine::colors[bengine::COLOR_WHITE]);
-            
+
                 this->window.renderText(this->font_general, (u"Tiles Left: " + btils::to_u16string(btils::tstr_AddZeros<Uint16>(this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL), 4, 0) + "/" + btils::tstr_AddZeros<Uint16>(this->maxTiles(), 4, 0) + " (" + btils::tstr_AddZeros<Uint16>((this->maxTiles() - this->players.at(id).getRemainingTiles(blokus::POLYTYPE_SENTINAL)) / this->maxTiles() * 100, 3, 0) + "%)")).c_str(), xpos + 12, ypos + 50, 0, bengine::colors[bengine::COLOR_WHITE]);
                 for (polyType i = blokus::POLYTYPE_BASE; i <= blokus::POLYTYPE_OCT; i++) {
                     if (this->pieceSets[i] > 0) {
@@ -245,7 +271,7 @@ namespace blokus {
             game(const Uint8 &boardSize = 20, const Uint8 &playerCount = 4, const Uint8 &baseSets = 1, const Uint8 &hexSets = 0, const Uint8 &heptSets = 0, const Uint8 &octSets = 0) : bengine::loop("Blokus", 1920, 1080, SDL_WINDOW_SHOWN | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_FULLSCREEN) {               
                 // Basic random seed generation
                 std::srand(std::time(NULL));
-                
+
                 // 30 fps; Blokus doesn't need to run fast at all
                 this->deltaTime = 0.03333333;
 
